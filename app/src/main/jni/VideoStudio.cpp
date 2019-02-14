@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include <jni.h>
+#include "cmd_line/ffmpeg.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,8 +50,31 @@ JNIEXPORT jstring JNICALL showFFmpegInfo(JNIEnv *env, jobject) {
     return result;
 }
 
+JNIEXPORT jint JNICALL executeFFmpegCmd(JNIEnv *env, jobject, jobjectArray commands) {
+    int argc = env->GetArrayLength(commands);
+    char **argv = (char **) malloc(sizeof(char *) * argc);
+//    av_log_set_callback(custom_log);
+    for (int i = 0; i < argc; i++) {
+        jstring string = (jstring) env->GetObjectArrayElement(commands, i);
+        const char *tmp = env->GetStringUTFChars(string, 0);
+        argv[i] = (char *) malloc(sizeof(char) * 1024);
+        strcpy(argv[i], tmp);
+    }
+    try {
+        ffmpeg_exec(argc, argv);
+    } catch (int i) {
+        LOGE("ffmpeg_exec error: %d", i);
+    }
+    for (int i = 0; i < argc; i++) {
+        free(argv[i]);
+    }
+    free(argv);
+    return 0;
+}
+
 const JNINativeMethod g_methods[] = {
-        "showFFmpegInfo", "()Ljava/lang/String;", (void *) showFFmpegInfo
+        "showFFmpegInfo", "()Ljava/lang/String;", (void *) showFFmpegInfo,
+        "executeFFmpegCmd", "([Ljava/lang/String;)I", (void *) executeFFmpegCmd
 };
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
