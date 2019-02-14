@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BlackPineapple</string>
+    <string name="camera1">相机--GLSurfaceView</string>
+    <string name="request_permission_failed">没有获得必要的权限</string>
+</resources>

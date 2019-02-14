@@ -1,0 +1,14 @@
+//
+// Created by ZhaoLiangtai on 2019/1/25.
+//
+
+#ifndef BLACKPINEAPPLE_AUDIOPACKETQUEUE_H
+#define BLACKPINEAPPLE_AUDIOPACKETQUEUE_H
+
+
+class AudioPacketQueue {
+
+};
+
+
+#endif //BLACKPINEAPPLE_AUDIOPACKETQUEUE_H
