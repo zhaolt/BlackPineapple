@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.jease.pineapple.R;
 import com.jease.pineapple.gles.GLController;
+import com.jease.pineapple.gles.filters.LookupFilter;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -43,13 +44,14 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback 
             SurfaceTexture surfaceTexture = mGLController.getSurfaceTexture();
             if (surfaceTexture == null)
                 return;
+            CameraHelper.getInstance().setPreviewTexture(surfaceTexture);
             surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                 @Override
                 public void onFrameAvailable(SurfaceTexture surfaceTexture) {
                     mGLController.requestRender();
                 }
             });
-            CameraHelper.getInstance().setPreviewTexture(surfaceTexture);
+            mGLController.addFilter(new LookupFilter(getResources()));
             CameraHelper.getInstance().startPreview();
         }
 
@@ -70,15 +72,16 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback 
         mSurfaceView = view.findViewById(R.id.surface_view);
         mSurfaceView.getHolder().addCallback(this);
         mGLController = new GLController(getContext());
-        mGLController.setRenderCallback(mRenderCallback);
         return view;
     }
 
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        if (null != mGLController)
+        if (null != mGLController) {
             mGLController.surfaceCreated(holder);
+            mGLController.setRenderCallback(mRenderCallback);
+        }
     }
 
     @Override

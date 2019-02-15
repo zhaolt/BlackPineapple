@@ -32,28 +32,30 @@ public class LookupFilter extends GLFilter {
         createProgramByAssetsFile("shader/lookup_vertex.glsl",
                 "shader/lookup_fragment.glsl");
         mMaskTexLoc = GLES20.glGetUniformLocation(mProgram, "maskTexture");
+        if (mLutBitmap != null && !mLutBitmap.isRecycled())
+            mLutTexId = MGLUtils.createTexture(mLutBitmap.getWidth(), mLutBitmap.getHeight());
     }
 
     @Override
     protected void onSizeChanged(int width, int height) {
-        mLutTexId = MGLUtils.createTexture(width, height);
-        if (mLutBitmap != null && !mLutBitmap.isRecycled()) {
-            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mLutBitmap, 0);
-            mLutBitmap.recycle();
-            mLutBitmap = null;
-        }
+
     }
 
     @Override
     protected void onSetExpandData() {
         super.onSetExpandData();
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mLutTexId);
+        if (mLutBitmap != null && !mLutBitmap.isRecycled()) {
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mLutBitmap, 0);
+            mLutBitmap.recycle();
+            mLutBitmap = null;
+        }
+        GLES20.glUniform1i(mMaskTexLoc, 1);
     }
 
     @Override
     protected void onBindTexture() {
         super.onBindTexture();
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mLutTexId);
-        GLES20.glUniform1i(mMaskTexLoc, 1);
     }
 }

@@ -16,6 +16,10 @@ public class CameraFilter extends GLFilter {
 
     private int mOesTexId;
 
+    private int mFrameBufId;
+
+    private int mOutputTexId;
+
     public CameraFilter(Resources res) {
         super(res);
         mOESFilter = new OESFilter(mRes);
@@ -31,6 +35,8 @@ public class CameraFilter extends GLFilter {
     @Override
     protected void onSizeChanged(int width, int height) {
         mOESFilter.setSize(width, height);
+        mFrameBufId = MGLUtils.createFrameBuffer();
+        mOutputTexId = MGLUtils.createTexture(width, height);
         GLES20.glViewport(0, 0, width, height);
     }
 
@@ -42,10 +48,17 @@ public class CameraFilter extends GLFilter {
             mOESFilter.setStMatrix(mStMatrix);
         }
         mOESFilter.setTextureId(mOesTexId);
+        MGLUtils.bindFrameTexture(mFrameBufId, mOutputTexId);
         mOESFilter.draw();
+        MGLUtils.unBindFrameBuffer();
     }
 
     public SurfaceTexture getSurfaceTexture() {
         return mSurfaceTexture;
+    }
+
+    @Override
+    public int getOutputTexture() {
+        return mOutputTexId;
     }
 }

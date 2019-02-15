@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jease.pineapple.gles.filters.CameraFilter;
+import com.jease.pineapple.gles.filters.GLFilter;
+import com.jease.pineapple.gles.filters.GroupFilter;
+import com.jease.pineapple.gles.filters.NoFilter;
 import com.jease.pineapple.record.RenderCallback;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -29,6 +32,10 @@ public class GLController implements GLSurfaceView.Renderer {
 
     private CameraFilter mCameraFilter;
 
+    private GroupFilter mGroupFilter;
+
+    private NoFilter mShowFilter;
+
     public GLController(Context context) {
         init(context);
     }
@@ -43,6 +50,8 @@ public class GLController implements GLSurfaceView.Renderer {
         vg.addView(mGLView);
         vg.setVisibility(View.GONE);
         mCameraFilter = new CameraFilter(mGLView.getResources());
+        mGroupFilter = new GroupFilter(mGLView.getResources());
+        mShowFilter = new NoFilter(mGLView.getResources());
     }
 
     public void onResume() {
@@ -67,6 +76,11 @@ public class GLController implements GLSurfaceView.Renderer {
         mRenderCallback = callback;
     }
 
+    public void addFilter(GLFilter filter) {
+        if (null != mGroupFilter)
+            mGroupFilter.addFilter(filter);
+    }
+
     public void surfaceCreated(Object nativeWindow) {
         mSurface = nativeWindow;
         mGLView.surfaceCreated(null);
@@ -88,6 +102,8 @@ public class GLController implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         mCameraFilter.create();
+        mGroupFilter.create();
+        mShowFilter.create();
         if (null != mRenderCallback)
             mRenderCallback.onSurfaceCreated(gl, config);
     }
@@ -95,6 +111,8 @@ public class GLController implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         mCameraFilter.setSize(width, height);
+        mGroupFilter.setSize(width, height);
+        mShowFilter.setSize(width, height);
         if (null != mRenderCallback)
             mRenderCallback.onSurfaceChanged(gl, width, height);
     }
@@ -102,6 +120,10 @@ public class GLController implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         mCameraFilter.draw();
+        mGroupFilter.setTextureId(mCameraFilter.getOutputTexture());
+        mGroupFilter.draw();
+        mShowFilter.setTextureId(mGroupFilter.getOutputTexture());
+        mShowFilter.draw();
         if (null != mRenderCallback)
             mRenderCallback.onDrawFrame(gl);
     }
