@@ -19,4 +19,6 @@ public class VideoStudio {
     }
 
     public native String showFFmpegInfo();
+
+    public native int executeFFmpegCmd(String[] argv);
 }

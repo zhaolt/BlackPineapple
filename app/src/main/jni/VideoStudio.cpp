@@ -5,11 +5,12 @@
 #include <cstring>
 
 #include <jni.h>
-#include "cmd_line/ffmpeg.h"
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "cmd_line/ffmpeg.h"
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
 #ifdef __cplusplus

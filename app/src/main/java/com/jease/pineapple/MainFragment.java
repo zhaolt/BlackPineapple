@@ -6,16 +6,20 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.jease.pineapple.media.VideoStudio;
 import com.jease.pineapple.record.Camera1Activity;
 import com.jease.pineapple.utils.PermissionUtils;
 
 public class MainFragment extends Fragment implements View.OnClickListener {
+
+    private static final String TAG = MainFragment.class.getSimpleName();
 
     public static MainFragment newInstance() {
         return new MainFragment();
@@ -46,6 +50,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_camera:
+                String info = VideoStudio.getInstance().showFFmpegInfo();
+                Log.e(TAG, info);
                 PermissionUtils.askPermission(this,
                         new String[]{ Manifest.permission.CAMERA },
                         10,

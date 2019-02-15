@@ -109,6 +109,10 @@ public abstract class GLFilter {
         GLES20.glUseProgram(mProgram);
     }
 
+    public int getOutputTexture() {
+        return -1;
+    }
+
     protected void onSetExpandData() {
         GLES20.glUniformMatrix4fv(mMvpMatrixLoc, 1, false, mMvpMatrix, 0);
     }
