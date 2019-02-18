@@ -128,11 +128,9 @@ public class GLController implements GLSurfaceView.Renderer {
         mGroupFilter.draw();
         mShowFilter.setTextureId(mGroupFilter.getOutputTexture());
         mShowFilter.draw();
-        synchronized (this) {
-            if (mVideoEncoder != null) {
-                // notify to capturing thread that the camera frame is available.
-                mVideoEncoder.frameAvailableSoon();
-            }
+        if (mVideoEncoder != null) {
+            // notify to capturing thread that the camera frame is available.
+            mVideoEncoder.frameAvailableSoon(mCameraFilter.getStMatrix(), mCameraFilter.getMvpMatrix());
         }
         if (null != mRenderCallback)
             mRenderCallback.onDrawFrame(gl);
@@ -140,8 +138,10 @@ public class GLController implements GLSurfaceView.Renderer {
 
     public void setVideoEncoder(MediaVideoEncoder encoder) {
         mVideoEncoder = encoder;
+        if (encoder != null) {
+            mVideoEncoder.setEglContext(EGL14.eglGetCurrentContext(), mCameraFilter.getOESTexId());
+        }
     }
-
 
     private final class GLView extends GLSurfaceView {
 

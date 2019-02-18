@@ -71,6 +71,10 @@ public abstract class GLFilter {
         return mTextureId;
     }
 
+    public float[] getMvpMatrix() {
+        return mMvpMatrix;
+    }
+
     protected void initBuffer() {
         mVertexBuf = ByteBuffer.allocateDirect(VERTEX.length * 4)
                 .order(ByteOrder.nativeOrder())
