@@ -2,10 +2,12 @@ package com.jease.pineapple.gles;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
+import android.opengl.EGL14;
 import android.opengl.GLSurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.jease.pineapple.encoder.MediaVideoEncoder;
 import com.jease.pineapple.gles.filters.CameraFilter;
 import com.jease.pineapple.gles.filters.GLFilter;
 import com.jease.pineapple.gles.filters.GroupFilter;
@@ -35,6 +37,8 @@ public class GLController implements GLSurfaceView.Renderer {
     private GroupFilter mGroupFilter;
 
     private NoFilter mShowFilter;
+
+    private MediaVideoEncoder mVideoEncoder;
 
     public GLController(Context context) {
         init(context);
@@ -124,8 +128,18 @@ public class GLController implements GLSurfaceView.Renderer {
         mGroupFilter.draw();
         mShowFilter.setTextureId(mGroupFilter.getOutputTexture());
         mShowFilter.draw();
+        synchronized (this) {
+            if (mVideoEncoder != null) {
+                // notify to capturing thread that the camera frame is available.
+                mVideoEncoder.frameAvailableSoon();
+            }
+        }
         if (null != mRenderCallback)
             mRenderCallback.onDrawFrame(gl);
+    }
+
+    public void setVideoEncoder(MediaVideoEncoder encoder) {
+        mVideoEncoder = encoder;
     }
 
 
