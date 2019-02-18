@@ -226,7 +226,6 @@ public class CameraThread extends Thread {
         if (mCamera == null) return;
         try {
             Log.i(TAG, "release Camera");
-            mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
             mCamera.release();
             mCamera = null;

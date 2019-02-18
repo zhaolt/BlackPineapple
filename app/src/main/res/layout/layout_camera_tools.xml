@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/tv_camera_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/camera_switch_btn_selector"
+        android:textColor="@color/camera_tools_text_color"
+        android:layout_margin="15dp"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:text="@string/camera_switch"/>
+    <TextView
+        android:id="@+id/tv_camera_flash"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/camera_flash_btn_selector"
+        android:textColor="@color/camera_tools_text_color"
+        android:layout_margin="15dp"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:text="@string/camera_flash"/>
+</LinearLayout>

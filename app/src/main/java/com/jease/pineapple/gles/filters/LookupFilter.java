@@ -12,6 +12,8 @@ import java.io.IOException;
 
 public class LookupFilter extends GLFilter {
 
+    private static final String TAG = LookupFilter.class.getSimpleName();
+
     private int mMaskTexLoc;
 
     private int mLutTexId;
@@ -32,8 +34,7 @@ public class LookupFilter extends GLFilter {
         createProgramByAssetsFile("shader/lookup_vertex.glsl",
                 "shader/lookup_fragment.glsl");
         mMaskTexLoc = GLES20.glGetUniformLocation(mProgram, "maskTexture");
-        if (mLutBitmap != null && !mLutBitmap.isRecycled())
-            mLutTexId = MGLUtils.createTexture(mLutBitmap.getWidth(), mLutBitmap.getHeight());
+        mLutTexId = MGLUtils.createTexture(mLutBitmap.getWidth(), mLutBitmap.getHeight());
     }
 
     @Override
@@ -44,14 +45,15 @@ public class LookupFilter extends GLFilter {
     @Override
     protected void onSetExpandData() {
         super.onSetExpandData();
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mLutTexId);
-        if (mLutBitmap != null && !mLutBitmap.isRecycled()) {
-            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mLutBitmap, 0);
-            mLutBitmap.recycle();
-            mLutBitmap = null;
+        if (mLutTexId != 0) {
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mLutTexId);
+            if (mLutBitmap != null && !mLutBitmap.isRecycled()) {
+                GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mLutBitmap, 0);
+                mLutBitmap.recycle();
+            }
+            GLES20.glUniform1i(mMaskTexLoc, 1);
         }
-        GLES20.glUniform1i(mMaskTexLoc, 1);
     }
 
     @Override

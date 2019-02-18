@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class GroupFilter extends GLFilter {
 
+    private static final String TAG = GroupFilter.class.getSimpleName();
+
     private Queue<GLFilter> mFilterQueue;
 
     private ArrayList<GLFilter> mFilters;
@@ -71,6 +73,12 @@ public class GroupFilter extends GLFilter {
                 mTexIndex++;
             }
         }
+    }
+
+    public void clearAll() {
+        mFilterQueue.clear();
+        mFilters.clear();
+        mSize = 0;
     }
 
     private void updateFilter() {
