@@ -1,42 +1,24 @@
 package com.jease.pineapple.encoder;
-/*
- * AudioVideoRecordingSample
- * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
- *
- * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
- *
- * File name: MediaVideoEncoder.java
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- * All files in the folder are under this Apache License, Version 2.0.
- */
 
+import android.annotation.TargetApi;
 import android.content.res.Resources;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.opengl.EGLContext;
+import android.os.Build;
 import android.util.Log;
 import android.view.Surface;
 
+import com.jease.pineapple.BuildConfig;
 import com.jease.pineapple.gles.RenderHandler;
 
 import java.io.IOException;
 
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class MediaVideoEncoder extends MediaEncoder {
-    private static final boolean DEBUG = false;	// TODO set false on release
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "MediaVideoEncoder";
 
     private static final String MIME_TYPE = "video/avc";
@@ -57,25 +39,12 @@ public class MediaVideoEncoder extends MediaEncoder {
 		mRenderHandler = RenderHandler.createHandler(TAG);
     }
 
-	public boolean frameAvailableSoon(final float[] tex_matrix) {
-		boolean result;
-		if (result = super.frameAvailableSoon())
-			mRenderHandler.draw(tex_matrix);
-		return result;
-	}
-
-	public boolean frameAvailableSoon(final float[] tex_matrix, final float[] mvp_matrix) {
-		boolean result;
-		if (result = super.frameAvailableSoon())
-			mRenderHandler.draw(tex_matrix, mvp_matrix);
-		return result;
-	}
-
 	@Override
 	public boolean frameAvailableSoon() {
 		boolean result;
-		if (result = super.frameAvailableSoon())
-			mRenderHandler.draw(null);
+		if (result = super.frameAvailableSoon()) {
+            mRenderHandler.draw();
+        }
 		return result;
 	}
 
@@ -115,8 +84,8 @@ public class MediaVideoEncoder extends MediaEncoder {
         }
     }
 
-    public void setEglContext(final EGLContext shared_context, final int tex_id, Resources resources) {
-		mRenderHandler.setEglContext(shared_context, tex_id, mSurface, true, resources);
+    public void setEglContext(final EGLContext eglContext, final int textureId, Resources resources) {
+		mRenderHandler.setEglContext(eglContext, textureId, mSurface, true, resources);
     }
 
     @Override
@@ -144,7 +113,7 @@ public class MediaVideoEncoder extends MediaEncoder {
      * @param mimeType
      * @return null if no codec matched
      */
-    protected static final MediaCodecInfo selectVideoCodec(final String mimeType) {
+    protected static MediaCodecInfo selectVideoCodec(final String mimeType) {
         if (DEBUG) Log.v(TAG, "selectVideoCodec:");
 
         // get the list of available codecs
@@ -174,7 +143,7 @@ public class MediaVideoEncoder extends MediaEncoder {
      * select color format available on specific codec and we can use.
      * @return 0 if no colorFormat is matched
      */
-    protected static final int selectColorFormat(final MediaCodecInfo codecInfo, final String mimeType) {
+    protected static int selectColorFormat(final MediaCodecInfo codecInfo, final String mimeType) {
         if (DEBUG) Log.i(TAG, "selectColorFormat: ");
         int result = 0;
         final MediaCodecInfo.CodecCapabilities caps;
@@ -211,7 +180,7 @@ public class MediaVideoEncoder extends MediaEncoder {
         };
     }
 
-    private static final boolean isRecognizedViewoFormat(final int colorFormat) {
+    private static boolean isRecognizedViewoFormat(final int colorFormat) {
         if (DEBUG) Log.i(TAG, "isRecognizedViewoFormat:colorFormat=" + colorFormat);
         final int n = recognizedFormats != null ? recognizedFormats.length : 0;
         for (int i = 0; i < n; i++) {

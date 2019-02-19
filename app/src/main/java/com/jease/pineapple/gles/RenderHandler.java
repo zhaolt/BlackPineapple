@@ -1,57 +1,36 @@
 package com.jease.pineapple.gles;
-/*
- * AudioVideoRecordingSample
- * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
- *
- * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
- *
- * File name: RenderHandler.java
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- * All files in the folder are under this Apache License, Version 2.0.
- */
 
 import android.content.res.Resources;
 import android.graphics.SurfaceTexture;
 import android.opengl.EGLContext;
 import android.opengl.GLES20;
-import android.opengl.Matrix;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
+import com.jease.pineapple.BuildConfig;
+import com.jease.pineapple.gles.filters.NoFilter;
+
 /**
  * Helper class to draw texture to whole view on private thread
  */
 public final class RenderHandler implements Runnable {
-	private static final boolean DEBUG = false;	// TODO set false on release
+	private static final boolean DEBUG = BuildConfig.DEBUG;
 	private static final String TAG = "RenderHandler";
 
 	private final Object mSync = new Object();
-	private EGLContext mShard_context;
-	private boolean mIsRecordable;
+	private EGLContext mEGLContext;
+	private boolean isRecordable;
 	private Object mSurface;
-	private int mTexId = -1;
-	private float[] mMatrix = new float[32];
+	private int mTextureId = -1;
 
 	private boolean mRequestSetEglContext;
 	private boolean mRequestRelease;
 	private int mRequestDraw;
 	private Resources mResource;
 
-	public static final RenderHandler createHandler(final String name) {
+	public static RenderHandler createHandler(final String name) {
 		if (DEBUG) Log.v(TAG, "createHandler:");
 		final RenderHandler handler = new RenderHandler();
 		synchronized (handler.mSync) {
@@ -59,73 +38,38 @@ public final class RenderHandler implements Runnable {
 			try {
 				handler.mSync.wait();
 			} catch (final InterruptedException e) {
+			    // ignore
 			}
 		}
 		return handler;
 	}
 
-	public final void setEglContext(final EGLContext shared_context, final int tex_id, final Object surface, final boolean isRecordable, Resources resources) {
+	public final void setEglContext(final EGLContext context, final int textureId, final Object surface, final boolean isRecordable, Resources resources) {
 		if (DEBUG) Log.i(TAG, "setEglContext:");
 		mResource = resources;
 		if (!(surface instanceof Surface) && !(surface instanceof SurfaceTexture) && !(surface instanceof SurfaceHolder))
 			throw new RuntimeException("unsupported window type:" + surface);
 		synchronized (mSync) {
 			if (mRequestRelease) return;
-			mShard_context = shared_context;
-			mTexId = tex_id;
+			mEGLContext = context;
+			mTextureId = textureId;
 			mSurface = surface;
-			mIsRecordable = isRecordable;
+			this.isRecordable = isRecordable;
 			mRequestSetEglContext = true;
-			Matrix.setIdentityM(mMatrix, 0);
-			Matrix.setIdentityM(mMatrix, 16);
 			mSync.notifyAll();
 			try {
 				mSync.wait();
 			} catch (final InterruptedException e) {
+			    // ignore
 			}
 		}
 	}
 
-	public final void draw() {
-		draw(mTexId, mMatrix, null);
-	}
-
-	public final void draw(final int tex_id) {
-		draw(tex_id, mMatrix, null);
-	}
-
-	public final void draw(final float[] tex_matrix) {
-		draw(mTexId, tex_matrix, null);
-	}
-
-	public final void draw(final float[] tex_matrix, final float[] mvp_matrix) {
-		draw(mTexId, tex_matrix, mvp_matrix);
-	}
-
-	public final void draw(final int tex_id, final float[] tex_matrix) {
-		draw(tex_id, tex_matrix, null);
-	}
-
-	public final void draw(final int tex_id, final float[] tex_matrix, final float[] mvp_matrix) {
+	public void draw() {
 		synchronized (mSync) {
 			if (mRequestRelease) return;
-			mTexId = tex_id;
-			if ((tex_matrix != null) && (tex_matrix.length >= 16)) {
-				System.arraycopy(tex_matrix, 0, mMatrix, 0, 16);
-			} else {
-				Matrix.setIdentityM(mMatrix, 0);
-			}
-			if ((mvp_matrix != null) && (mvp_matrix.length >= 16)) {
-				System.arraycopy(mvp_matrix, 0, mMatrix, 16, 16);
-			} else {
-				Matrix.setIdentityM(mMatrix, 16);
-			}
 			mRequestDraw++;
 			mSync.notifyAll();
-/*			try {
-				mSync.wait();
-			} catch (final InterruptedException e) {
-			} */
 		}
 	}
 
@@ -135,7 +79,7 @@ public final class RenderHandler implements Runnable {
 		}
 	}
 
-	public final void release() {
+	public void release() {
 		if (DEBUG) Log.i(TAG, "release:");
 		synchronized (mSync) {
 			if (mRequestRelease) return;
@@ -144,15 +88,14 @@ public final class RenderHandler implements Runnable {
 			try {
 				mSync.wait();
 			} catch (final InterruptedException e) {
+			    // ignore
 			}
 		}
 	}
 
-	//********************************************************************************
-//********************************************************************************
 	private EGLBase mEgl;
 	private EGLBase.EglSurface mInputSurface;
-	private GLDrawer2D mDrawer;
+	private NoFilter mShowFilter;
 
 	@Override
 	public final void run() {
@@ -173,17 +116,15 @@ public final class RenderHandler implements Runnable {
 				localRequestDraw = mRequestDraw > 0;
 				if (localRequestDraw) {
 					mRequestDraw--;
-//					mSync.notifyAll();
 				}
 			}
 			if (localRequestDraw) {
-				if ((mEgl != null) && mTexId >= 0) {
+				if ((mEgl != null) && mTextureId >= 0) {
 					mInputSurface.makeCurrent();
 					GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 					GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-					mDrawer.setSize(720, 1080);
-					mDrawer.setTextureId(mTexId);
-					mDrawer.draw();
+					mShowFilter.setTextureId(mTextureId);
+					mShowFilter.draw();
 					mInputSurface.swap();
 				}
 			} else {
@@ -204,34 +145,27 @@ public final class RenderHandler implements Runnable {
 		if (DEBUG) Log.i(TAG, "RenderHandler thread finished:");
 	}
 
-	private final void internalPrepare() {
+	private void internalPrepare() {
 		if (DEBUG) Log.i(TAG, "internalPrepare:");
 		internalRelease();
-		mEgl = new EGLBase(mShard_context, false, mIsRecordable);
-
+		mEgl = new EGLBase(mEGLContext, false, isRecordable);
 		mInputSurface = mEgl.createFromSurface(mSurface);
-
 		mInputSurface.makeCurrent();
-		mDrawer = new GLDrawer2D(mResource);
-		mDrawer.create();
+		mShowFilter = new NoFilter(mResource);
+		mShowFilter.create();
 		mSurface = null;
 		mSync.notifyAll();
 	}
 
-	private final void internalRelease() {
+	private void internalRelease() {
 		if (DEBUG) Log.i(TAG, "internalRelease:");
 		if (mInputSurface != null) {
 			mInputSurface.release();
 			mInputSurface = null;
 		}
-//		if (mDrawer != null) {
-//			mDrawer.release();
-//			mDrawer = null;
-//		}
 		if (mEgl != null) {
 			mEgl.release();
 			mEgl = null;
 		}
 	}
-
 }

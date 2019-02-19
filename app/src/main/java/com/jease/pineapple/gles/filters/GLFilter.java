@@ -33,7 +33,7 @@ public abstract class GLFilter {
             1.0f, 1.0f
     };
 
-    protected int mProgram;
+    protected int mProgram = -1;
 
     protected int mPositionLoc;
 
@@ -102,6 +102,13 @@ public abstract class GLFilter {
         onSetExpandData();
         onBindTexture();
         onDraw();
+    }
+
+    public void release() {
+        if (mProgram >= 0) {
+            GLES20.glDeleteProgram(mProgram);
+        }
+        mProgram = -1;
     }
 
     protected void onClear() {

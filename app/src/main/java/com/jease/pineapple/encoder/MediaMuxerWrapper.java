@@ -1,33 +1,15 @@
 package com.jease.pineapple.encoder;
-/*
- * AudioVideoRecordingSample
- * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
- *
- * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
- *
- * File name: MediaMuxerWrapper.java
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- * All files in the folder are under this Apache License, Version 2.0.
-*/
 
+import android.annotation.TargetApi;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.os.Build;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.jease.pineapple.BuildConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,8 +18,9 @@ import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class MediaMuxerWrapper {
-	private static final boolean DEBUG = false;	// TODO set false on release
+	private static final boolean DEBUG = BuildConfig.DEBUG;
 	private static final String TAG = "MediaMuxerWrapper";
 
 	private static final String DIR_NAME = "BlackPineapple";
@@ -45,8 +28,8 @@ public class MediaMuxerWrapper {
 
 	private String mOutputPath;
 	private final MediaMuxer mMediaMuxer;	// API >= 18
-	private int mEncoderCount, mStatredCount;
-	private boolean mIsStarted;
+	private int mEncoderCount, mStartedCount;
+	private boolean isStarted;
 	private MediaEncoder mVideoEncoder, mAudioEncoder;
 
 	/**
@@ -62,8 +45,8 @@ public class MediaMuxerWrapper {
 			throw new RuntimeException("This app has no permission of writing external storage");
 		}
 		mMediaMuxer = new MediaMuxer(mOutputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-		mEncoderCount = mStatredCount = 0;
-		mIsStarted = false;
+		mEncoderCount = mStartedCount = 0;
+		isStarted = false;
 	}
 
 	public String getOutputPath() {
@@ -94,7 +77,7 @@ public class MediaMuxerWrapper {
 	}
 
 	public synchronized boolean isStarted() {
-		return mIsStarted;
+		return isStarted;
 	}
 
 //**********************************************************************
@@ -123,26 +106,26 @@ public class MediaMuxerWrapper {
 	 */
 	/*package*/ synchronized boolean start() {
 		if (DEBUG) Log.v(TAG,  "start:");
-		mStatredCount++;
-		if ((mEncoderCount > 0) && (mStatredCount == mEncoderCount)) {
+		mStartedCount++;
+		if ((mEncoderCount > 0) && (mStartedCount == mEncoderCount)) {
 			mMediaMuxer.start();
-			mIsStarted = true;
+			isStarted = true;
 			notifyAll();
 			if (DEBUG) Log.v(TAG,  "MediaMuxer started:");
 		}
-		return mIsStarted;
+		return isStarted;
 	}
 
 	/**
 	 * request stop recording from encoder when encoder received EOS
 	*/
 	/*package*/ synchronized void stop() {
-		if (DEBUG) Log.v(TAG,  "stop:mStatredCount=" + mStatredCount);
-		mStatredCount--;
-		if ((mEncoderCount > 0) && (mStatredCount <= 0)) {
+		if (DEBUG) Log.v(TAG,  "stop:mStartedCount=" + mStartedCount);
+		mStartedCount--;
+		if ((mEncoderCount > 0) && (mStartedCount <= 0)) {
 			mMediaMuxer.stop();
 			mMediaMuxer.release();
-			mIsStarted = false;
+			isStarted = false;
 			if (DEBUG) Log.v(TAG,  "MediaMuxer stopped:");
 		}
 	}
@@ -153,7 +136,7 @@ public class MediaMuxerWrapper {
 	 * @return minus value indicate error
 	 */
 	/*package*/ synchronized int addTrack(final MediaFormat format) {
-		if (mIsStarted)
+		if (isStarted)
 			throw new IllegalStateException("muxer already started");
 		final int trackIx = mMediaMuxer.addTrack(format);
 		if (DEBUG) Log.i(TAG, "addTrack:trackNum=" + mEncoderCount + ",trackIx=" + trackIx + ",format=" + format);
@@ -167,7 +150,7 @@ public class MediaMuxerWrapper {
 	 * @param bufferInfo
 	 */
 	/*package*/ synchronized void writeSampleData(final int trackIndex, final ByteBuffer byteBuf, final MediaCodec.BufferInfo bufferInfo) {
-		if (mStatredCount > 0)
+		if (mStartedCount > 0)
 			mMediaMuxer.writeSampleData(trackIndex, byteBuf, bufferInfo);
 	}
 

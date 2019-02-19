@@ -73,6 +73,15 @@ public class GroupFilter extends GLFilter {
         }
     }
 
+    @Override
+    public void release() {
+        super.release();
+        for (int i = 0, size = mFilters.size(); i < size; i++) {
+            GLFilter filter = mFilters.get(i);
+            filter.release();
+        }
+    }
+
     private void updateFilter() {
         GLFilter f;
         while ((f = mFilterQueue.poll()) != null) {

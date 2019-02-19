@@ -1,9 +1,11 @@
 package com.jease.pineapple.gles;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -53,9 +55,6 @@ public class GLController implements GLSurfaceView.Renderer {
         };
         vg.addView(mGLView);
         vg.setVisibility(View.GONE);
-        mCameraFilter = new CameraFilter(mGLView.getResources());
-        mGroupFilter = new GroupFilter(mGLView.getResources());
-        mShowFilter = new NoFilter(mGLView.getResources());
     }
 
     public void onResume() {
@@ -88,6 +87,15 @@ public class GLController implements GLSurfaceView.Renderer {
     public void surfaceCreated(Object nativeWindow) {
         mSurface = nativeWindow;
         mGLView.surfaceCreated(null);
+        if (mCameraFilter == null) {
+            mCameraFilter = new CameraFilter(mGLView.getResources());
+        }
+        if (mGroupFilter == null) {
+            mGroupFilter = new GroupFilter(mGLView.getResources());
+        }
+        if (mShowFilter == null) {
+            mShowFilter = new NoFilter(mGLView.getResources());
+        }
     }
 
     public void surfaceChanged(int width, int height) {
@@ -96,6 +104,12 @@ public class GLController implements GLSurfaceView.Renderer {
 
     public void surfaceDestroyed() {
         mGLView.surfaceDestroyed(null);
+        mCameraFilter.release();
+        mGroupFilter.release();
+        mShowFilter.release();
+        mCameraFilter = null;
+        mGroupFilter = null;
+        mShowFilter = null;
     }
 
     public void release() {
@@ -130,12 +144,13 @@ public class GLController implements GLSurfaceView.Renderer {
         mShowFilter.draw();
         if (mVideoEncoder != null) {
             // notify to capturing thread that the camera frame is available.
-            mVideoEncoder.frameAvailableSoon(mCameraFilter.getStMatrix(), mCameraFilter.getMvpMatrix());
+            mVideoEncoder.frameAvailableSoon();
         }
         if (null != mRenderCallback)
             mRenderCallback.onDrawFrame(gl);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void setVideoEncoder(MediaVideoEncoder encoder) {
         mVideoEncoder = encoder;
         if (encoder != null) {

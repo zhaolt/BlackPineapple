@@ -61,12 +61,4 @@ public class CameraFilter extends GLFilter {
     public int getOutputTexture() {
         return mOutputTexId;
     }
-
-    public float[] getStMatrix() {
-        return mStMatrix;
-    }
-
-    public int getOESTexId() {
-        return mOesTexId;
-    }
 }

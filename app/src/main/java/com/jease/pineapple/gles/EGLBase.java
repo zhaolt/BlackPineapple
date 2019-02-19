@@ -1,26 +1,4 @@
 package com.jease.pineapple.gles;
-/*
- * AudioVideoRecordingSample
- * Sample project to cature audio and video from internal mic/camera and save as MPEG4 file.
- *
- * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
- *
- * File name: EGLBase.java
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- * All files in the folder are under this Apache License, Version 2.0.
-*/
 
 import android.annotation.TargetApi;
 import android.graphics.SurfaceTexture;
@@ -35,9 +13,11 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.jease.pineapple.BuildConfig;
+
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class EGLBase {	// API >= 17
-	private static final boolean DEBUG = false;	// TODO set false on release
+	private static final boolean DEBUG = BuildConfig.DEBUG;
 	private static final String TAG = "EGLBase";
 
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;
@@ -180,7 +160,6 @@ public class EGLBase {	// API >= 17
 	 * @return
 	 */
 	private boolean makeCurrent(final EGLSurface surface) {
-//		if (DEBUG) Log.v(TAG, "makeCurrent:");
         if (mEglDisplay == null) {
             if (DEBUG) Log.d(TAG, "makeCurrent:eglDisplay not initialized");
         }
@@ -207,7 +186,6 @@ public class EGLBase {	// API >= 17
 	}
 
 	private int swap(final EGLSurface surface) {
-//		if (DEBUG) Log.v(TAG, "swap:");
         if (!EGL14.eglSwapBuffers(mEglDisplay, surface)) {
         	final int err = EGL14.eglGetError();
         	if (DEBUG) Log.w(TAG, "swap:err=" + err);
@@ -217,8 +195,6 @@ public class EGLBase {	// API >= 17
     }
 
     private EGLContext createContext(final EGLContext shared_context) {
-//		if (DEBUG) Log.v(TAG, "createContext:");
-
         final int[] attrib_list = {
         	EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
         	EGL14.EGL_NONE
@@ -319,15 +295,15 @@ public class EGLBase {	// API >= 17
                 EGL14.EGL_NONE
         };
         int offset = 10;
-        if (false) {				// ステンシルバッファ(常時未使用)
+        if (false) {
         	attribList[offset++] = EGL14.EGL_STENCIL_SIZE;
         	attribList[offset++] = 8;
         }
-        if (with_depth_buffer) {	// デプスバッファ
+        if (with_depth_buffer) {
         	attribList[offset++] = EGL14.EGL_DEPTH_SIZE;
         	attribList[offset++] = 16;
         }
-        if (isRecordable && (Build.VERSION.SDK_INT >= 18)) {// MediaCodecの入力用Surfaceの場合
+        if (isRecordable && (Build.VERSION.SDK_INT >= 18)) {
         	attribList[offset++] = EGL_RECORDABLE_ANDROID;
         	attribList[offset++] = 1;
         }
