@@ -101,4 +101,9 @@ public class GroupFilter extends GLFilter {
             mTextures[i] = MGLUtils.createTexture(mWidth, mHeight);
         }
     }
+
+    public void release() {
+        GLES20.glDeleteFramebuffers(1, new int[] {mFrameBufId}, 0);
+        GLES20.glDeleteTextures(mTextures.length, mTextures, 0);
+    }
 }

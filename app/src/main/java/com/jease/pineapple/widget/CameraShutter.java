@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
@@ -226,5 +227,9 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
     public void onAnimationUpdate(ValueAnimator animation) {
         mAnimFraction = (float) animation.getAnimatedValue();
         mParentView.invalidate();
+    }
+
+    public boolean onTouch(MotionEvent event) {
+        return false;
     }
 }

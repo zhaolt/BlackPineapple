@@ -49,9 +49,6 @@ public class GLController implements GLSurfaceView.Renderer {
         };
         vg.addView(mGLView);
         vg.setVisibility(View.GONE);
-        mCameraFilter = new CameraFilter(mGLView.getResources());
-        mGroupFilter = new GroupFilter(mGLView.getResources());
-        mShowFilter = new NoFilter(mGLView.getResources());
     }
 
     public void onResume() {
@@ -59,6 +56,19 @@ public class GLController implements GLSurfaceView.Renderer {
     }
 
     public void onPause() {
+        mGLView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                if (mCameraFilter != null) {
+                    mCameraFilter.release();
+                    mCameraFilter = null;
+                }
+                if (mGroupFilter != null) {
+                    mGroupFilter.release();
+                    mGroupFilter = null;
+                }
+            }
+        });
         mGLView.onPause();
     }
 
@@ -101,6 +111,9 @@ public class GLController implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        mCameraFilter = new CameraFilter(mGLView.getResources());
+        mGroupFilter = new GroupFilter(mGLView.getResources());
+        mShowFilter = new NoFilter(mGLView.getResources());
         mCameraFilter.create();
         mGroupFilter.create();
         mShowFilter.create();

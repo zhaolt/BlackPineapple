@@ -53,6 +53,7 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
             if (surfaceTexture == null)
                 return;
             CameraHelper.getInstance().setPreviewTexture(surfaceTexture);
+            onFilterSet(mGLController);
             surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                 @Override
                 public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -81,7 +82,6 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
         mSurfaceView = view.findViewById(R.id.surface_view);
         mSurfaceView.getHolder().addCallback(this);
         mGLController = new GLController(getContext());
-        onFilterSet(mGLController);
         mCameraSwitchBtn.setOnClickListener(this);
         mCameraFlashBtn.setOnClickListener(this);
         return view;

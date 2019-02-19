@@ -61,4 +61,11 @@ public class CameraFilter extends GLFilter {
     public int getOutputTexture() {
         return mOutputTexId;
     }
+
+    public void release() {
+        GLES20.glDeleteFramebuffers(1, new int[] {mFrameBufId}, 0);
+        GLES20.glDeleteTextures(2, new int[] {mOutputTexId, mOesTexId}, 0);
+        if (mSurfaceTexture != null)
+            mSurfaceTexture.release();
+    }
 }
