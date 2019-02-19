@@ -139,7 +139,12 @@ public class GLController implements GLSurfaceView.Renderer {
     public void setVideoEncoder(MediaVideoEncoder encoder) {
         mVideoEncoder = encoder;
         if (encoder != null) {
-            mVideoEncoder.setEglContext(EGL14.eglGetCurrentContext(), mCameraFilter.getOESTexId());
+            mGLView.queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    mVideoEncoder.setEglContext(EGL14.eglGetCurrentContext(), mGroupFilter.getOutputTexture(), mGLView.getResources());
+                }
+            });
         }
     }
 

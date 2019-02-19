@@ -22,6 +22,7 @@ package com.jease.pineapple.gles;
  * All files in the folder are under this Apache License, Version 2.0.
  */
 
+import android.content.res.Resources;
 import android.graphics.SurfaceTexture;
 import android.opengl.EGLContext;
 import android.opengl.GLES20;
@@ -48,6 +49,7 @@ public final class RenderHandler implements Runnable {
 	private boolean mRequestSetEglContext;
 	private boolean mRequestRelease;
 	private int mRequestDraw;
+	private Resources mResource;
 
 	public static final RenderHandler createHandler(final String name) {
 		if (DEBUG) Log.v(TAG, "createHandler:");
@@ -62,8 +64,9 @@ public final class RenderHandler implements Runnable {
 		return handler;
 	}
 
-	public final void setEglContext(final EGLContext shared_context, final int tex_id, final Object surface, final boolean isRecordable) {
+	public final void setEglContext(final EGLContext shared_context, final int tex_id, final Object surface, final boolean isRecordable, Resources resources) {
 		if (DEBUG) Log.i(TAG, "setEglContext:");
+		mResource = resources;
 		if (!(surface instanceof Surface) && !(surface instanceof SurfaceTexture) && !(surface instanceof SurfaceHolder))
 			throw new RuntimeException("unsupported window type:" + surface);
 		synchronized (mSync) {
@@ -178,8 +181,9 @@ public final class RenderHandler implements Runnable {
 					mInputSurface.makeCurrent();
 					GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 					GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-					mDrawer.setMatrix(mMatrix, 16);
-					mDrawer.draw(mTexId, mMatrix);
+					mDrawer.setSize(720, 1080);
+					mDrawer.setTextureId(mTexId);
+					mDrawer.draw();
 					mInputSurface.swap();
 				}
 			} else {
@@ -208,7 +212,8 @@ public final class RenderHandler implements Runnable {
 		mInputSurface = mEgl.createFromSurface(mSurface);
 
 		mInputSurface.makeCurrent();
-		mDrawer = new GLDrawer2D();
+		mDrawer = new GLDrawer2D(mResource);
+		mDrawer.create();
 		mSurface = null;
 		mSync.notifyAll();
 	}
@@ -219,10 +224,10 @@ public final class RenderHandler implements Runnable {
 			mInputSurface.release();
 			mInputSurface = null;
 		}
-		if (mDrawer != null) {
-			mDrawer.release();
-			mDrawer = null;
-		}
+//		if (mDrawer != null) {
+//			mDrawer.release();
+//			mDrawer = null;
+//		}
 		if (mEgl != null) {
 			mEgl.release();
 			mEgl = null;

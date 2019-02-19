@@ -22,6 +22,7 @@ package com.jease.pineapple.encoder;
  * All files in the folder are under this Apache License, Version 2.0.
  */
 
+import android.content.res.Resources;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -114,8 +115,8 @@ public class MediaVideoEncoder extends MediaEncoder {
         }
     }
 
-    public void setEglContext(final EGLContext shared_context, final int tex_id) {
-		mRenderHandler.setEglContext(shared_context, tex_id, mSurface, true);
+    public void setEglContext(final EGLContext shared_context, final int tex_id, Resources resources) {
+		mRenderHandler.setEglContext(shared_context, tex_id, mSurface, true, resources);
     }
 
     @Override
