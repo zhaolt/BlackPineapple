@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,6 +27,8 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
 
     public static final int MODE_VIDEO_WORK = 0x105;
 
+    public static final int MODE_VIDEO_TO_NORMAL = 0x106;
+
     private static final String VIDEO_MODE_COLOR = "#FD415F";
 
     private static final String PHOTO_MODE_COLOR = "#FFFFFF";
@@ -36,11 +39,15 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
 
     private boolean mBreathingFlags;
 
-    private static final long ANIM_DURATION = 300L;
+    private static final long ANIM_DURATION = 350L;
 
     private float mAnimFraction = 1f;
 
-    private int mDefaultRingWidth;
+    private float mDefaultRingWidth;
+
+    private float mToWorkRingMaxWidth;
+
+    private float mWorkingModeRingWidth;
 
     private int mWorkingModeRingMaxWidth;
 
@@ -74,6 +81,8 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
 
     private int mMode = MODE_VIDEO_NORMAL;
 
+    private Point mCenterPoint;
+
     public CameraShutter(View parent) {
         mParentView = parent;
         mPaint = new Paint();
@@ -82,15 +91,18 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         mPaint.setColor(Color.parseColor(VIDEO_MODE_COLOR));
         mMinRadius = (int) DensityUtils.dp2px(30f);
         mMiddleRadius = (int) DensityUtils.dp2px(40f);
-        mMaxRadius = (int) DensityUtils.dp2px(60f);
+        mMaxRadius = (int) DensityUtils.dp2px(55f);
         mDefaultRingWidth = (int) DensityUtils.dp2px(6f);
-        mWorkingModeRingMaxWidth = (int) DensityUtils.dp2px(10f);
+        mWorkingModeRingWidth = (int) DensityUtils.dp2px(8f);
+        mWorkingModeRingMaxWidth = (int) DensityUtils.dp2px(15f);
+        mToWorkRingMaxWidth = mMaxRadius - mMinRadius;
         mCenterRectMinAngle = (int) DensityUtils.dp2px(5f);
         mCenterRectMaxAngle = (int) DensityUtils.dp2px(35f);
         mCenterRectMinSize = (int) DensityUtils.dp2px(16f);
         mCenterRectMaxSize = (int) (Math.sqrt(Math.pow(mMinRadius * 2, 2)) / 2);
         mCenterX = mCenterY = mMiddleRadius;
         mMatrix = new Matrix();
+        mCenterPoint = new Point();
     }
 
     public void draw(Canvas canvas) {
@@ -112,7 +124,7 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
                 mPaint.setStyle(Paint.Style.STROKE);
                 mPaint.setStrokeWidth(mDefaultRingWidth);
                 mPaint.setColor(ringColor);
-                ringRadius = mMiddleRadius - mDefaultRingWidth;
+                ringRadius = (int) (mMiddleRadius - mDefaultRingWidth);
                 canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
                 drawBasicCircle(canvas, mCenterX, mCenterY, radius);
                 mAnimFraction = 0;
@@ -127,9 +139,11 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
                 drawSquare(canvas, mCenterX, tmpAngle, rectSize);
                 radius = (int) (mMiddleRadius + (mMaxRadius - mMiddleRadius) * mAnimFraction);
                 mPaint.setStyle(Paint.Style.STROKE);
-                mPaint.setStrokeWidth(mDefaultRingWidth);
+                mWorkingModeRingWidth = (int) (mToWorkRingMaxWidth -
+                        ((mToWorkRingMaxWidth - mDefaultRingWidth) * mAnimFraction));
+                mPaint.setStrokeWidth(mWorkingModeRingWidth);
                 mPaint.setColor(Color.parseColor(RING_COLOR));
-                ringRadius = radius - mDefaultRingWidth / 2;
+                ringRadius = (int) (radius - mDefaultRingWidth / 2);
                 canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
                 if (mAnimFraction >= 1.0f) {
                     mMode = MODE_VIDEO_WORK;
@@ -142,7 +156,28 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
                 drawSquare(canvas, mCenterX, mCenterRectMinAngle, mCenterRectMinSize);
                 radius = mMaxRadius;
                 drawBreathingCircle(canvas, mCenterX, mCenterY, radius, Color.parseColor(RING_COLOR));
-                mParentView.postInvalidateDelayed(50);
+                mParentView.postInvalidateDelayed(30);
+                mAnimFraction = 0f;
+                break;
+            case MODE_VIDEO_TO_NORMAL:
+                tmpAngle = (int) (mCenterRectMinAngle + (mCenterRectMaxAngle - mCenterRectMinAngle)
+                        * mAnimFraction);
+                mPaint.setStyle(Paint.Style.FILL);
+                mPaint.setColor(Color.parseColor(VIDEO_MODE_COLOR));
+                rectSize = (int) (mCenterRectMinSize + (mCenterRectMaxSize - mCenterRectMinSize)
+                        * mAnimFraction);
+                drawSquare(canvas, mCenterX, tmpAngle, rectSize);
+                mPaint.setStyle(Paint.Style.STROKE);
+                mWorkingModeRingWidth = (int) (mToWorkRingMaxWidth -
+                        ((mToWorkRingMaxWidth - mDefaultRingWidth) * mAnimFraction));
+                mPaint.setStrokeWidth(mWorkingModeRingWidth);
+                mPaint.setColor(Color.parseColor(RING_COLOR));
+                ringRadius = (int) (mMiddleRadius - mDefaultRingWidth);
+                canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
+                if (mAnimFraction == 1.0f) {
+                    mMode = MODE_VIDEO_NORMAL;
+                    mParentView.invalidate();
+                }
                 break;
         }
         canvas.restore();
@@ -159,24 +194,28 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
     private void drawBreathingCircle(Canvas canvas, int centerX,
                                      int centerY, float radius, int color) {
         float ringRadius;
-        float iS = DensityUtils.dp2px(1f);
-        if (mDefaultRingWidth <= mWorkingModeRingMaxWidth && !mBreathingFlags) {
-            mDefaultRingWidth += iS;
-            if (mDefaultRingWidth >= mWorkingModeRingMaxWidth) {
+        float iS = DensityUtils.dp2px(.5f);
+        if (mWorkingModeRingWidth <= mWorkingModeRingMaxWidth && !mBreathingFlags) {
+            mWorkingModeRingWidth += iS;
+            if (mWorkingModeRingWidth >= mWorkingModeRingMaxWidth) {
                 mBreathingFlags = true;
             }
         }
-        if (mDefaultRingWidth >= DensityUtils.dp2px(5f) && mBreathingFlags) {
-            mDefaultRingWidth -= iS;
-            if (mDefaultRingWidth <= DensityUtils.dp2px(5f)) {
+        if (mWorkingModeRingWidth >= DensityUtils.dp2px(5f) && mBreathingFlags) {
+            mWorkingModeRingWidth -= iS;
+            if (mWorkingModeRingWidth <= DensityUtils.dp2px(5f)) {
                 mBreathingFlags = false;
             }
         }
         mPaint.setColor(color);
         mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(mDefaultRingWidth);
-        ringRadius = radius - mDefaultRingWidth / 2;
+        mPaint.setStrokeWidth(mWorkingModeRingWidth);
+        ringRadius = radius - mWorkingModeRingWidth / 2;
         canvas.drawCircle(centerX, centerY, ringRadius, mPaint);
+    }
+
+    public void setCenterPoint(int x, int y) {
+        mCenterPoint.set(x, y);
     }
 
     private void startAnimation() {
@@ -230,6 +269,33 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
     }
 
     public boolean onTouch(MotionEvent event) {
-        return false;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mDownX = event.getX();
+                mDownY = event.getY();
+                if (!checkValidTouched())
+                    return false;
+                if (mMode == MODE_VIDEO_NORMAL) {
+                    mMode = MODE_VIDEO_TO_WORK;
+                    startAnimation();
+                } else if (mMode == MODE_VIDEO_WORK) {
+                    mMode = MODE_VIDEO_TO_NORMAL;
+                    startAnimation();
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+        }
+        return true;
+    }
+
+    private boolean checkValidTouched() {
+        int distanceX = Math.abs(mCenterPoint.x - (int) mDownX);
+        int distanceY = Math.abs(mCenterPoint.y - (int) mDownY);
+        int distanceZ = (int) Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
+        if (distanceZ > mMiddleRadius) {
+            return false;
+        }
+        return true;
     }
 }

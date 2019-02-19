@@ -10,6 +10,7 @@ import android.graphics.Shader;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.widget.FrameLayout;
 
 import com.jease.pineapple.utils.DensityUtils;
@@ -58,6 +59,8 @@ public class CameraView extends FrameLayout {
     private void restoration(int width, int height) {
         int offsetX = width / 2 - mCameraShutter.getMiddleRadius();
         int offsetY = (int) (height - DensityUtils.dp2px(48) - mCameraShutter.getMiddleRadius() * 2);
+        mCameraShutter.setCenterPoint(offsetX + mCameraShutter.getMiddleRadius(),
+                offsetY + mCameraShutter.getMiddleRadius());
         mCameraShutter.getMatrix().reset();
         mCameraShutter.getMatrix().postTranslate(offsetX, offsetY);
     }
@@ -80,6 +83,11 @@ public class CameraView extends FrameLayout {
             mBottomRect = new Rect(0, getHeight() - shapeHeight, shapeWidth, getHeight());
             isInited = true;
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return mCameraShutter.onTouch(event);
     }
 
     @Override
