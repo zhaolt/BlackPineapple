@@ -14,6 +14,7 @@ private:
 
 public:
     Handler(MessageQueue *queue);
+
     ~Handler();
 
     int PostMessage(Message *msg);

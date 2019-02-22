@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.jease.pineapple.record.Camera1Activity;
+import com.jease.pineapple.record.CameraActivity;
 import com.jease.pineapple.utils.PermissionUtils;
 
 public class MainFragment extends Fragment implements View.OnClickListener {
@@ -26,13 +26,15 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     private Runnable mCamera1InitViewTask = new Runnable() {
         @Override
         public void run() {
-            Intent intent = Camera1Activity.getCallingIntent(
-                    MainFragment.this.getActivity());
+            Intent intent = CameraActivity.getCallingIntent(
+                    MainFragment.this.getActivity(), true);
             startActivity(intent);
         }
     };
 
     private Button mCameraBtn;
+
+    private Button mCamera2Btn;
 
     @Nullable
     @Override
@@ -40,7 +42,9 @@ public class MainFragment extends Fragment implements View.OnClickListener {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         mCameraBtn = view.findViewById(R.id.bt_camera);
+        mCamera2Btn = view.findViewById(R.id.bt_camera2);
         mCameraBtn.setOnClickListener(this);
+        mCamera2Btn.setOnClickListener(this);
         return view;
     }
 
@@ -49,9 +53,16 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.bt_camera:
                 PermissionUtils.askPermission(this,
-                        new String[]{ Manifest.permission.CAMERA },
+                        new String[]{
+                                Manifest.permission.CAMERA,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.RECORD_AUDIO
+                        },
                         10,
                         mCamera1InitViewTask);
+                break;
+            case R.id.bt_camera2:
                 break;
         }
     }

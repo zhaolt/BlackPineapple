@@ -56,6 +56,11 @@ public class CameraView extends FrameLayout {
         mPaint.setDither(true);
     }
 
+    public void setOnShutterClickListener(CameraShutter.OnClickListener listener) {
+        if (null != mCameraShutter)
+            mCameraShutter.setOnClickListener(listener);
+    }
+
     private void restoration(int width, int height) {
         int offsetX = width / 2 - mCameraShutter.getMiddleRadius();
         int offsetY = (int) (height - DensityUtils.dp2px(48) - mCameraShutter.getMiddleRadius() * 2);

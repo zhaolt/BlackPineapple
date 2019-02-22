@@ -1,4 +1,4 @@
-package com.jease.pineapple.record;
+package com.jease.pineapple.record.camera;
 
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
@@ -158,8 +158,8 @@ public class CameraThread extends Thread {
                 Camera.CameraInfo info = new Camera.CameraInfo();
                 Camera.getCameraInfo(mFacing, info);
                 boolean isPortrait = info.orientation == ORIENTATIONS.get(0);
-                Rect focusRect = focusParams.getFocusRect(isPortrait);
-                Rect meteringRect = focusParams.getMeteringRect(isPortrait);
+                Rect focusRect = focusParams.getFocusRect();
+                Rect meteringRect = focusParams.getMeteringRect();
                 mCamera.cancelAutoFocus();
                 if (mFacing != Camera.CameraInfo.CAMERA_FACING_FRONT
                         && params.getMaxNumFocusAreas() > 0) {

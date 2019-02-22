@@ -11,10 +11,18 @@ import android.view.WindowManager;
 import com.jease.pineapple.R;
 import com.jease.pineapple.base.FullScreenActivity;
 
-public class Camera1Activity extends FullScreenActivity {
+public class CameraActivity extends FullScreenActivity {
 
-    public static Intent getCallingIntent(Context context) {
-        return new Intent(context, Camera1Activity.class);
+    private static final String CAMERA_JAVA = "java";
+
+    private static final String CAMERA_CPP = "c++";
+
+    private boolean isJava = false;
+
+    public static Intent getCallingIntent(Context context, boolean isJava) {
+        Intent intent = new Intent(context, CameraActivity.class);
+        intent.putExtra("isJava", isJava);
+        return intent;
     }
 
     @Override
@@ -22,15 +30,17 @@ public class Camera1Activity extends FullScreenActivity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_root);
+        isJava = getIntent().getBooleanExtra("isJava", true);
         loadCameraFragment();
     }
 
     private void loadCameraFragment() {
         FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment = fm.findFragmentById(R.id.frame_root);
-        if (null == fragment) {
+        Fragment fragment;
+        if (isJava)
             fragment = Camera1Fragment.newInstance();
-        }
+        else
+            fragment = Camera2Fragment.newInstance();
         addFragment(fm, fragment, R.id.frame_root);
     }
 }

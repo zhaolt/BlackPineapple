@@ -16,11 +16,14 @@ import android.widget.TextView;
 import com.jease.pineapple.R;
 import com.jease.pineapple.gles.GLController;
 import com.jease.pineapple.gles.filters.LookupFilter;
+import com.jease.pineapple.record.camera.CameraHelper;
+import com.jease.pineapple.widget.CameraShutter;
+import com.jease.pineapple.widget.CameraView;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback, View.OnClickListener {
+public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback, View.OnClickListener, CameraShutter.OnClickListener {
 
     private SurfaceView mSurfaceView;
 
@@ -29,6 +32,8 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
     private TextView mCameraSwitchBtn;
 
     private TextView mCameraFlashBtn;
+
+    private CameraView mCameraView;
 
     private int mCameraIndex = Camera.CameraInfo.CAMERA_FACING_BACK;
 
@@ -76,14 +81,16 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_camera1, container, false);
+        View view = inflater.inflate(R.layout.fragment_camera, container, false);
         mCameraSwitchBtn = view.findViewById(R.id.tv_camera_switch);
         mCameraFlashBtn = view.findViewById(R.id.tv_camera_flash);
         mSurfaceView = view.findViewById(R.id.surface_view);
+        mCameraView = view.findViewById(R.id.camera_view);
         mSurfaceView.getHolder().addCallback(this);
         mGLController = new GLController(getContext());
         mCameraSwitchBtn.setOnClickListener(this);
         mCameraFlashBtn.setOnClickListener(this);
+        mCameraView.setOnShutterClickListener(this);
         return view;
     }
 
@@ -155,5 +162,20 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
             case R.id.tv_camera_flash:
                 break;
         }
+    }
+
+    @Override
+    public void onPressed() {
+
+    }
+
+    @Override
+    public void onRelease() {
+
+    }
+
+    @Override
+    public void onClicked() {
+
     }
 }

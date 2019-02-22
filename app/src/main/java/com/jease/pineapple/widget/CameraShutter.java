@@ -65,10 +65,6 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
 
     private Matrix mMatrix;
 
-    private float mDownX;
-
-    private float mDownY;
-
     private int mCenterX;
 
     private int mCenterY;
@@ -82,6 +78,8 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
     private int mMode = MODE_VIDEO_NORMAL;
 
     private Point mCenterPoint;
+
+    private OnClickListener mOnClickListener;
 
     public CameraShutter(View parent) {
         mParentView = parent;
@@ -103,6 +101,10 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         mCenterX = mCenterY = mMiddleRadius;
         mMatrix = new Matrix();
         mCenterPoint = new Point();
+    }
+
+    public void setOnClickListener(OnClickListener listener) {
+        mOnClickListener = listener;
     }
 
     public void draw(Canvas canvas) {
@@ -271,31 +273,39 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
     public boolean onTouch(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                mDownX = event.getX();
-                mDownY = event.getY();
-                if (!checkValidTouched())
+                if (!checkValidTouched((int) event.getX(), (int) event.getY()))
+                    return false;
+                break;
+            case MotionEvent.ACTION_UP:
+                if (!checkValidTouched((int) event.getX(), (int) event.getY()))
                     return false;
                 if (mMode == MODE_VIDEO_NORMAL) {
                     mMode = MODE_VIDEO_TO_WORK;
-                    startAnimation();
+                    if (mOnClickListener != null)
+                        mOnClickListener.onPressed();
                 } else if (mMode == MODE_VIDEO_WORK) {
                     mMode = MODE_VIDEO_TO_NORMAL;
-                    startAnimation();
+                    if (mOnClickListener != null)
+                        mOnClickListener.onRelease();
                 }
-                break;
-            case MotionEvent.ACTION_UP:
                 break;
         }
         return true;
     }
 
-    private boolean checkValidTouched() {
-        int distanceX = Math.abs(mCenterPoint.x - (int) mDownX);
-        int distanceY = Math.abs(mCenterPoint.y - (int) mDownY);
+    private boolean checkValidTouched(int x, int y) {
+        int distanceX = Math.abs(mCenterPoint.x - x);
+        int distanceY = Math.abs(mCenterPoint.y - y);
         int distanceZ = (int) Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
         if (distanceZ > mMiddleRadius) {
             return false;
         }
         return true;
+    }
+
+    public interface OnClickListener {
+        void onPressed();
+        void onRelease();
+        void onClicked();
     }
 }

@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".record.Camera1Activity"
+            android:name=".record.CameraActivity"
             android:screenOrientation="portrait"/>
     </application>
 

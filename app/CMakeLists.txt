@@ -19,6 +19,7 @@ file(GLOB FILES_LIB_COMMON_MESSAGE "${PATH_TO_VIDEOSTUDIO}/common/message/*.cpp"
 file(GLOB FILES_LIB_RECORD_ENCODE "${PATH_TO_VIDEOSTUDIO}/video_record/encode/*.cpp")
 file(GLOB FILES_LIB_RECORD_COMMON "${PATH_TO_VIDEOSTUDIO}/video_record/common/*.cpp")
 file(GLOB FILES_LIB_EGL_CORE "${PATH_TO_VIDEOSTUDIO}/common/egl_core/*.cpp")
+file(GLOB FILES_LIB_GLES "${PATH_TO_VIDEOSTUDIO}/gles/*.cpp")
 
 add_library( # Sets the name of the library.
         video-studio
@@ -32,6 +33,7 @@ add_library( # Sets the name of the library.
         ${FILES_LIB_RECORD_COMMON}
         ${FILES_LIB_COMMON_MESSAGE}
         ${FILES_LIB_EGL_CORE}
+        ${FILES_LIB_GLES}
         ${PATH_TO_VIDEOSTUDIO}/cmd_line/cmdutils.c
         ${PATH_TO_VIDEOSTUDIO}/cmd_line/ffmpeg.c
         ${PATH_TO_VIDEOSTUDIO}/cmd_line/ffmpeg_filter.c

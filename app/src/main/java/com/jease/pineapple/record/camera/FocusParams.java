@@ -1,4 +1,4 @@
-package com.jease.pineapple.record;
+package com.jease.pineapple.record.camera;
 
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -26,23 +26,15 @@ public class FocusParams {
         mHeight = height;
     }
 
-    public Rect getFocusRect(boolean isPortrait) {
+    public Rect getFocusRect() {
         int width = mWidth;
         int height = mHeight;
-        if (isPortrait) {
-            width = mHeight;
-            height = mWidth;
-        }
         return calculateTapArea(mX, mY, FOCUS_COEF, width, height);
     }
 
-    public Rect getMeteringRect(boolean isPortrait) {
+    public Rect getMeteringRect() {
         int width = mWidth;
         int height = mHeight;
-        if (isPortrait) {
-            width = mHeight;
-            height = mWidth;
-        }
         return calculateTapArea(mX, mY, METER_COEF, width, height);
     }
 
@@ -62,8 +54,8 @@ public class FocusParams {
         int areaSize = Float.valueOf(focusAreaSize * coefficient).intValue();
         float halfW = width / 2f;
         float halfH = height / 2f;
-        int centerX = (int) ((x - halfW) / halfW * FOCUS_SIDE);
-        int centerY = (int) ((halfH - y) / halfH * FOCUS_SIDE);
+        int centerX = (int) ((y - halfH) / halfH * FOCUS_SIDE);
+        int centerY = (int) ((halfW - x) / halfW * FOCUS_SIDE);
         int left = clamp(centerX - areaSize / 2, -FOCUS_SIDE, FOCUS_SIDE);
         int top = clamp(centerY - areaSize / 2, -FOCUS_SIDE, FOCUS_SIDE);
         int right = left + areaSize > FOCUS_SIDE ? FOCUS_SIDE : left + areaSize;

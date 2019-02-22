@@ -73,9 +73,14 @@ JNIEXPORT jint JNICALL executeFFmpegCmd(JNIEnv *env, jobject, jobjectArray comma
     return 0;
 }
 
+JNIEXPORT void JNICALL prepareEGLContext(JNIEnv *env, jobject, jobject surface, jint width, jint height) {
+
+}
+
 const JNINativeMethod g_methods[] = {
         "showFFmpegInfo", "()Ljava/lang/String;", (void *) showFFmpegInfo,
-        "executeFFmpegCmd", "([Ljava/lang/String;)I", (void *) executeFFmpegCmd
+        "executeFFmpegCmd", "([Ljava/lang/String;)I", (void *) executeFFmpegCmd,
+        "prepareEGLContext", "(Ljava/lang/Object;II)V", (void *) prepareEGLContext,
 };
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {

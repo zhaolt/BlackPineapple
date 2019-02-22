@@ -1,4 +1,4 @@
-package com.jease.pineapple.record;
+package com.jease.pineapple.record.camera;
 
 import android.graphics.SurfaceTexture;
 import android.os.Handler;
