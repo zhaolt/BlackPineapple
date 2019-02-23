@@ -20,6 +20,7 @@ public class Camera1Activity extends FullScreenActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_root);
         loadCameraFragment();
@@ -29,7 +30,7 @@ public class Camera1Activity extends FullScreenActivity {
         FragmentManager fm = getSupportFragmentManager();
         Fragment fragment = fm.findFragmentById(R.id.frame_root);
         if (null == fragment) {
-            fragment = Camera1Fragment.newInstance();
+            fragment = CameraTextureFragment.newInstance();
         }
         addFragment(fm, fragment, R.id.frame_root);
     }
