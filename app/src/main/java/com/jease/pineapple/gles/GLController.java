@@ -10,6 +10,7 @@ import com.jease.pineapple.gles.filters.CameraFilter;
 import com.jease.pineapple.gles.filters.GLFilter;
 import com.jease.pineapple.gles.filters.GroupFilter;
 import com.jease.pineapple.gles.filters.NoFilter;
+import com.jease.pineapple.media.hardware.HardwareRecorder;
 import com.jease.pineapple.record.RenderCallback;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -35,6 +36,8 @@ public class GLController implements GLSurfaceView.Renderer {
     private GroupFilter mGroupFilter;
 
     private NoFilter mShowFilter;
+
+    private HardwareRecorder mHardwareRecorder;
 
     public GLController(Context context) {
         init(context);
@@ -74,6 +77,14 @@ public class GLController implements GLSurfaceView.Renderer {
 
     public void requestRender() {
         mGLView.requestRender();
+    }
+
+    public void commitTask(Runnable runnable) {
+        mGLView.queueEvent(runnable);
+    }
+
+    public synchronized void setHardwareRecorder(HardwareRecorder recorder) {
+        mHardwareRecorder = recorder;
     }
 
     public SurfaceTexture getSurfaceTexture() {
@@ -137,6 +148,10 @@ public class GLController implements GLSurfaceView.Renderer {
         mGroupFilter.draw();
         mShowFilter.setTextureId(mGroupFilter.getOutputTexture());
         mShowFilter.draw();
+        if (mHardwareRecorder != null) {
+            mHardwareRecorder.frameAvailable();
+            mHardwareRecorder.drawRecordFrame(mGroupFilter.getOutputTexture());
+        }
         if (null != mRenderCallback)
             mRenderCallback.onDrawFrame(gl);
     }

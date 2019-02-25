@@ -6,24 +6,28 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import com.jease.pineapple.R;
+import com.jease.pineapple.common.Constants;
 import com.jease.pineapple.gles.GLController;
 import com.jease.pineapple.gles.filters.LookupFilter;
 import com.jease.pineapple.record.camera.CameraHelper;
+import com.jease.pineapple.utils.FileUtils;
 import com.jease.pineapple.widget.CameraShutter;
 import com.jease.pineapple.widget.CameraView;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback, View.OnClickListener, CameraShutter.OnClickListener {
+public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
+        View.OnClickListener, CameraShutter.OnClickListener {
+
+    private static final String TAG = Camera1Fragment.class.getSimpleName();
 
     private SurfaceView mSurfaceView;
 
@@ -36,6 +40,34 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
     private CameraView mCameraView;
 
     private int mCameraIndex = Camera.CameraInfo.CAMERA_FACING_BACK;
+
+    private VideoRecorder.RecordStatusCallback mRecordStatusCallback
+            = new VideoRecorder.RecordStatusCallback() {
+        @Override
+        public void onPrepared() {
+        }
+
+        @Override
+        public void onStarted() {
+            mCameraView.post(new Runnable() {
+                @Override
+                public void run() {
+                    onStartRecording();
+                }
+            });
+        }
+
+        @Override
+        public void onStopped() {
+            mCameraView.post(new Runnable() {
+                @Override
+                public void run() {
+                    onStopRecording();
+                }
+            });
+
+        }
+    };
 
     public static Camera1Fragment newInstance() {
         return new Camera1Fragment();
@@ -140,6 +172,19 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
         }
     }
 
+    private void onStartRecording() {
+        mCameraView.startShutterVideoAnim();
+        mCameraSwitchBtn.setVisibility(View.GONE);
+        mCameraFlashBtn.setVisibility(View.GONE);
+    }
+
+    private void onStopRecording() {
+        mCameraView.stopShutterVideoAnim();
+        mCameraSwitchBtn.setVisibility(View.VISIBLE);
+        mCameraFlashBtn.setVisibility(View.VISIBLE);
+        VideoRecorder.getInstance().setRecordStatusCallback(null);
+    }
+
     private void onFilterSet(GLController controller) {
         LookupFilter lutFilter = new LookupFilter(getResources());
         controller.addFilter(lutFilter);
@@ -166,12 +211,20 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
 
     @Override
     public void onPressed() {
-
+        VideoRecorder.getInstance()
+                .outputPath(FileUtils.getVideoPath())
+                .resolution(Constants.Video.WIDTH, Constants.Video.HEIGHT)
+                .render(mGLController)
+                .prepare();
+        VideoRecorder.getInstance().setRecordStatusCallback(mRecordStatusCallback);
+        VideoRecorder.getInstance().startRecording();
+        Log.i(TAG, "shutter be pressed, start recording video...");
     }
 
     @Override
     public void onRelease() {
-
+        VideoRecorder.getInstance().stopRecording();
+        Log.i(TAG, "shutter be released, stop recording video...");
     }
 
     @Override

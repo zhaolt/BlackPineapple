@@ -220,6 +220,16 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         mCenterPoint.set(x, y);
     }
 
+    public void startShutterVideoAnim() {
+        mMode = MODE_VIDEO_TO_WORK;
+        startAnimation();
+    }
+
+    public void stopShutterVideoAnim() {
+        mMode = MODE_VIDEO_TO_NORMAL;
+        startAnimation();
+    }
+
     private void startAnimation() {
         if (null != mValueAnimator && mValueAnimator.isRunning())
             mValueAnimator.cancel();
@@ -280,11 +290,9 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
                 if (!checkValidTouched((int) event.getX(), (int) event.getY()))
                     return false;
                 if (mMode == MODE_VIDEO_NORMAL) {
-                    mMode = MODE_VIDEO_TO_WORK;
                     if (mOnClickListener != null)
                         mOnClickListener.onPressed();
                 } else if (mMode == MODE_VIDEO_WORK) {
-                    mMode = MODE_VIDEO_TO_NORMAL;
                     if (mOnClickListener != null)
                         mOnClickListener.onRelease();
                 }

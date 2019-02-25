@@ -56,6 +56,14 @@ public class CameraView extends FrameLayout {
         mPaint.setDither(true);
     }
 
+    public void startShutterVideoAnim() {
+        mCameraShutter.startShutterVideoAnim();
+    }
+
+    public void stopShutterVideoAnim() {
+        mCameraShutter.stopShutterVideoAnim();
+    }
+
     public void setOnShutterClickListener(CameraShutter.OnClickListener listener) {
         if (null != mCameraShutter)
             mCameraShutter.setOnClickListener(listener);

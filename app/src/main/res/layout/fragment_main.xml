@@ -23,6 +23,7 @@
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             android:text="@string/camera2"
+            android:visibility="gone"
             android:textColor="@color/white"/>
     </LinearLayout>
 
