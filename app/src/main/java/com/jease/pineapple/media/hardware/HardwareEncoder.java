@@ -57,8 +57,6 @@ public class HardwareEncoder {
      */
     static final int MSG_QUIT = 7;
 
-    static final int MSG_INIT_SWAYING = 8;
-
     private String mOutputPath;
 
     private RecordThread mRecordThread;
@@ -99,12 +97,6 @@ public class HardwareEncoder {
         Handler handler = mRecordThread.getHandler();
         if (null != handler)
             handler.sendMessage(handler.obtainMessage(MSG_INIT_RECORDER, width, height, listener));
-    }
-
-    public void initSwaying(int width, int height, MediaEncoder.MediaEncoderListener listener) {
-        Handler handler = mRecordThread.getHandler();
-        if (null != handler)
-            handler.sendMessage(handler.obtainMessage(MSG_INIT_SWAYING, width, height, listener));
     }
 
 
@@ -262,31 +254,6 @@ public class HardwareEncoder {
             }
         }
 
-        void initSwaying(int width, int height, MediaEncoder.MediaEncoderListener listener) {
-            if (VERBOSE)
-                Log.d(TAG, "init recorder.");
-            synchronized (mReadyFence) {
-                long time = System.currentTimeMillis();
-                mVideoWidth = width;
-                mVideoHeight = height;
-                String filePath = mWeakRecorder.get().getOutputPath();
-                if (TextUtils.isEmpty(filePath))
-                    throw new IllegalArgumentException("file path must no be empty!");
-                File file = new File(filePath);
-                if (!file.getParentFile().exists())
-                    file.getParentFile().mkdirs();
-                try {
-                    mMuxerWrapper = new MediaMuxerWrapper(file.getAbsolutePath());
-                    new MediaVideoEncoder(mMuxerWrapper, listener, mVideoWidth, mVideoHeight);
-                    if (enableAudio)
-                        new MediaAudioEncoder(mMuxerWrapper, listener);
-                    mMuxerWrapper.prepare();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                mProcessTime += (System.currentTimeMillis() - time);
-            }
-        }
 
 
         void startRecording(EGLContext sharedContext) {
@@ -440,10 +407,6 @@ public class HardwareEncoder {
                 case MSG_QUIT:
                     removeCallbacksAndMessages(null);
                     Looper.myLooper().quit();
-                    break;
-                case MSG_INIT_SWAYING:
-                    thread.initSwaying(msg.arg1, msg.arg2,
-                            (MediaEncoder.MediaEncoderListener) msg.obj);
                     break;
                 default:
                     throw new RuntimeException("Unhandled msg what = " + what);

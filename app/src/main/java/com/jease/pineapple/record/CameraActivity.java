@@ -8,20 +8,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.WindowManager;
 
+import com.jease.pineapple.MainActivity;
 import com.jease.pineapple.R;
 import com.jease.pineapple.base.FullScreenActivity;
 
 public class CameraActivity extends FullScreenActivity {
 
-    private static final String CAMERA_JAVA = "java";
 
-    private static final String CAMERA_CPP = "c++";
-
-    private boolean isJava = false;
-
-    public static Intent getCallingIntent(Context context, boolean isJava) {
+    public static Intent getCallingIntent(Context context) {
         Intent intent = new Intent(context, CameraActivity.class);
-        intent.putExtra("isJava", isJava);
         return intent;
     }
 
@@ -30,17 +25,23 @@ public class CameraActivity extends FullScreenActivity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_root);
-        isJava = getIntent().getBooleanExtra("isJava", true);
         loadCameraFragment();
     }
 
     private void loadCameraFragment() {
         FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment;
-        if (isJava)
-            fragment = Camera1Fragment.newInstance();
-        else
-            fragment = Camera2Fragment.newInstance();
+        Fragment fragment = fm.findFragmentById(R.id.frame_root);
+        if (fragment == null)
+            fragment = CameraFragment.newInstance();
         addFragment(fm, fragment, R.id.frame_root);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+        overridePendingTransition(0, R.anim.slide_out_down);
+        // 回主页 清栈
+        Intent intent = MainActivity.getCallingIntent(this);
+        startActivity(intent);
     }
 }

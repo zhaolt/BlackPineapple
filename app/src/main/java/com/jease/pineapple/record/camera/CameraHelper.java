@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.SurfaceHolder;
 
 import com.jease.pineapple.BuildConfig;
 
@@ -37,6 +38,8 @@ public class CameraHelper {
     public static final int MSG_SWITCH_CAMERA = 10;
 
     public static final int MSG_QUIT = 11;
+
+    public static final int MSG_SET_DISPLAY = 12;
 
     private CameraThread mCamera;
 
@@ -106,6 +109,13 @@ public class CameraHelper {
         CameraHandler handler = mCamera.getHandler();
         if (null != handler)
             handler.sendMessage(handler.obtainMessage(MSG_HANDLE_SHRINK, shrink));
+    }
+
+    public void setDisplay(SurfaceHolder holder) {
+        if (null == mCamera) return;
+        CameraHandler handler = mCamera.getHandler();
+        if (null != handler)
+            handler.sendMessage(handler.obtainMessage(MSG_SET_DISPLAY, holder));
     }
 
 
@@ -185,6 +195,9 @@ public class CameraHelper {
                         Log.d(TAG, "quit loop");
                     Looper.myLooper().quit();
                     release();
+                    break;
+                case MSG_SET_DISPLAY:
+                    camera.setDisplay((SurfaceHolder) msg.obj);
                     break;
             }
         }

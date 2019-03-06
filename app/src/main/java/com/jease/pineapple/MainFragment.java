@@ -9,10 +9,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.jease.pineapple.record.CameraActivity;
+import com.jease.pineapple.record.album.AlbumActivity;
 import com.jease.pineapple.utils.PermissionUtils;
 
 public class MainFragment extends Fragment implements View.OnClickListener {
@@ -26,43 +26,36 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     private Runnable mCamera1InitViewTask = new Runnable() {
         @Override
         public void run() {
-            Intent intent = CameraActivity.getCallingIntent(
-                    MainFragment.this.getActivity(), true);
+            Intent intent = AlbumActivity.getCallingIntent(getActivity());
             startActivity(intent);
+            getActivity().overridePendingTransition(R.anim.slide_in_up, 0);
         }
     };
 
-    private Button mCameraBtn;
-
-    private Button mCamera2Btn;
+    private ImageView mCameraBtn;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
-        mCameraBtn = view.findViewById(R.id.bt_camera);
-        mCamera2Btn = view.findViewById(R.id.bt_camera2);
+        mCameraBtn = view.findViewById(R.id.iv_camera_btn);
         mCameraBtn.setOnClickListener(this);
-        mCamera2Btn.setOnClickListener(this);
         return view;
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.bt_camera:
+            case R.id.iv_camera_btn:
                 PermissionUtils.askPermission(this,
                         new String[]{
                                 Manifest.permission.CAMERA,
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.RECORD_AUDIO
+                                Manifest.permission.READ_EXTERNAL_STORAGE
                         },
                         10,
                         mCamera1InitViewTask);
-                break;
-            case R.id.bt_camera2:
                 break;
         }
     }

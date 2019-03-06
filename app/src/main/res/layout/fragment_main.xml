@@ -5,26 +5,12 @@
     android:layout_height="match_parent"
     android:background="@color/colorPrimaryDark"
     android:orientation="vertical">
-    <LinearLayout
+
+    <ImageView
+        android:id="@+id/iv_camera_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:orientation="vertical">
-        <Button
-            android:id="@+id/bt_camera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:text="@string/camera1"
-            android:textColor="@color/white"/>
-        <Button
-            android:id="@+id/bt_camera2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:text="@string/camera2"
-            android:visibility="gone"
-            android:textColor="@color/white"/>
-    </LinearLayout>
+        android:src="@drawable/btn_camera_selector"/>
 
 </RelativeLayout>

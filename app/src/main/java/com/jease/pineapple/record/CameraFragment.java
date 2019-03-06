@@ -12,7 +12,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.jease.pineapple.R;
 import com.jease.pineapple.common.Constants;
 import com.jease.pineapple.gles.GLController;
@@ -21,13 +23,14 @@ import com.jease.pineapple.record.camera.CameraHelper;
 import com.jease.pineapple.utils.FileUtils;
 import com.jease.pineapple.widget.CameraShutter;
 import com.jease.pineapple.widget.CameraView;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
+public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
         View.OnClickListener, CameraShutter.OnClickListener {
 
-    private static final String TAG = Camera1Fragment.class.getSimpleName();
+    private static final String TAG = CameraFragment.class.getSimpleName();
 
     private SurfaceView mSurfaceView;
 
@@ -38,6 +41,8 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
     private TextView mCameraFlashBtn;
 
     private CameraView mCameraView;
+
+    private ImageView mCloseBtn;
 
     private int mCameraIndex = Camera.CameraInfo.CAMERA_FACING_BACK;
 
@@ -65,39 +70,22 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
                     onStopRecording();
                 }
             });
-
         }
     };
 
-    public static Camera1Fragment newInstance() {
-        return new Camera1Fragment();
+    public static CameraFragment newInstance() {
+        return new CameraFragment();
     }
 
     private RenderCallback mRenderCallback = new RenderCallback() {
         @Override
         public void onSurfaceDestroyed() {
-            CameraHelper.getInstance().stopPreview();
-            CameraHelper.getInstance().release();
+            releaseCamera();
         }
 
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-            CameraHelper.getInstance().prepareCameraThread();
-            CameraHelper.getInstance().openCamera(mCameraIndex);
-            int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
-            CameraHelper.getInstance().initCamera(rotation, 9.0 / 16.0);
-            SurfaceTexture surfaceTexture = mGLController.getSurfaceTexture();
-            if (surfaceTexture == null)
-                return;
-            CameraHelper.getInstance().setPreviewTexture(surfaceTexture);
-            onFilterSet(mGLController);
-            surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-                @Override
-                public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-                    mGLController.requestRender();
-                }
-            });
-            CameraHelper.getInstance().startPreview();
+            initCamera();
         }
 
         @Override
@@ -109,6 +97,30 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
         }
     };
 
+    private void initCamera() {
+        CameraHelper.getInstance().prepareCameraThread();
+        CameraHelper.getInstance().openCamera(mCameraIndex);
+        int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
+        CameraHelper.getInstance().initCamera(rotation, 9.0 / 16.0);
+        SurfaceTexture surfaceTexture = mGLController.getSurfaceTexture();
+        if (surfaceTexture == null)
+            return;
+        CameraHelper.getInstance().setPreviewTexture(surfaceTexture);
+        onFilterSet(mGLController);
+        surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+            @Override
+            public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                mGLController.requestRender();
+            }
+        });
+        CameraHelper.getInstance().startPreview();
+    }
+
+    private void releaseCamera() {
+        CameraHelper.getInstance().stopPreview();
+        CameraHelper.getInstance().release();
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -118,11 +130,13 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
         mCameraFlashBtn = view.findViewById(R.id.tv_camera_flash);
         mSurfaceView = view.findViewById(R.id.surface_view);
         mCameraView = view.findViewById(R.id.camera_view);
+        mCloseBtn = view.findViewById(R.id.iv_close);
         mSurfaceView.getHolder().addCallback(this);
         mGLController = new GLController(getContext());
         mCameraSwitchBtn.setOnClickListener(this);
         mCameraFlashBtn.setOnClickListener(this);
         mCameraView.setOnShutterClickListener(this);
+        mCloseBtn.setOnClickListener(this);
         return view;
     }
 
@@ -206,8 +220,12 @@ public class Camera1Fragment extends Fragment implements SurfaceHolder.Callback,
                 break;
             case R.id.tv_camera_flash:
                 break;
+            case R.id.iv_close:
+                getActivity().onBackPressed();
+                break;
         }
     }
+
 
     @Override
     public void onPressed() {

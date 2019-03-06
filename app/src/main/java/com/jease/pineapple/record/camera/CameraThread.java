@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -157,7 +158,6 @@ public class CameraThread extends Thread {
                 Camera.Parameters params = mCamera.getParameters();
                 Camera.CameraInfo info = new Camera.CameraInfo();
                 Camera.getCameraInfo(mFacing, info);
-                boolean isPortrait = info.orientation == ORIENTATIONS.get(0);
                 Rect focusRect = focusParams.getFocusRect();
                 Rect meteringRect = focusParams.getMeteringRect();
                 mCamera.cancelAutoFocus();
@@ -240,6 +240,18 @@ public class CameraThread extends Thread {
                 try {
                     mCamera.setPreviewTexture(surfaceTexture);
                 } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    void setDisplay(SurfaceHolder holder) {
+        synchronized (mReadyFence) {
+            if (null != mCamera) {
+                try {
+                    mCamera.setPreviewDisplay(holder);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
