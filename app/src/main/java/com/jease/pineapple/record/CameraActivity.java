@@ -38,6 +38,9 @@ public class CameraActivity extends FullScreenActivity {
 
     @Override
     public void onBackPressed() {
+        CameraFragment fragment = (CameraFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.frame_root);
+        if (fragment != null && fragment.dismissPopMenu()) return;
         finish();
         overridePendingTransition(0, R.anim.slide_out_down);
         // 回主页 清栈

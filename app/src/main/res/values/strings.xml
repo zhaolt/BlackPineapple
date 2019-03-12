@@ -1,8 +1,7 @@
 <resources>
     <string name="app_name">BlackPineapple</string>
-    <string name="camera1">相机--Java</string>
-    <string name="camera2">相机--Java和C++</string>
     <string name="request_permission_failed">没有获得必要的权限</string>
     <string name="camera_switch">翻转</string>
     <string name="camera_flash">闪光</string>
+    <string name="filter">滤镜</string>
 </resources>

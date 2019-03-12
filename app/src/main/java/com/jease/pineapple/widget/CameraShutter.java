@@ -1,6 +1,7 @@
 package com.jease.pineapple.widget;
 
 import android.animation.Animator;
+import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -17,6 +18,8 @@ import com.jease.pineapple.utils.DensityUtils;
 public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         Animator.AnimatorListener {
 
+    private static final String TAG = CameraShutter.class.getSimpleName();
+
     public static final int MODE_PHOTO_NORMAL = 0x101;
 
     public static final int MODE_PHOTO_WORK = 0x102;
@@ -28,6 +31,10 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
     public static final int MODE_VIDEO_WORK = 0x105;
 
     public static final int MODE_VIDEO_TO_NORMAL = 0x106;
+
+    public static final int MODE_PHOTO_TO_VIDEO = 0x107;
+
+    public static final int MODE_VIDEO_TO_PHOTO = 0x108;
 
     private static final String VIDEO_MODE_COLOR = "#FD415F";
 
@@ -75,11 +82,13 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
 
     private int mMiddleRadius;
 
-    private int mMode = MODE_VIDEO_NORMAL;
+    private int mMode = MODE_PHOTO_NORMAL;
 
     private Point mCenterPoint;
 
     private OnClickListener mOnClickListener;
+
+    private boolean isVisible = true;
 
     public CameraShutter(View parent) {
         mParentView = parent;
@@ -108,6 +117,7 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
     }
 
     public void draw(Canvas canvas) {
+        if (!isVisible) return;
         canvas.save();
         canvas.concat(mMatrix);
         int radius;
@@ -118,8 +128,57 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         int ringColor = Color.parseColor(RING_COLOR);
         switch (mMode) {
             case MODE_PHOTO_NORMAL:
+                radius = mMinRadius;
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(mDefaultRingWidth);
+                ringColor = alpha << 24 | (Color.parseColor(PHOTO_MODE_COLOR) & 0xffffff);
+                mPaint.setColor(ringColor);
+                ringRadius = (int) (mMiddleRadius - mDefaultRingWidth);
+                canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
+                drawBasicCircle(canvas, mCenterX, mCenterY, radius, Color.parseColor(PHOTO_MODE_COLOR));
+                mAnimFraction = 0f;
                 break;
             case MODE_PHOTO_WORK:
+                radius = mMinRadius;
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(mDefaultRingWidth);
+                ringColor = alpha << 24 | (Color.parseColor(PHOTO_MODE_COLOR) & 0xffffff);
+                mPaint.setColor(ringColor);
+                ringRadius = (int) (mMiddleRadius - mDefaultRingWidth);
+                canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
+                drawBasicCircle(canvas, mCenterX, mCenterY, radius, ringColor);
+                break;
+            case MODE_PHOTO_TO_VIDEO:
+                radius = mMinRadius;
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(mDefaultRingWidth);
+                ringColor = calculateColor(alpha << 24 | (Color.parseColor(PHOTO_MODE_COLOR) & 0xffffff),
+                        Color.parseColor(RING_COLOR));
+                mPaint.setColor(ringColor);
+                ringRadius = (int) (mMiddleRadius - mDefaultRingWidth);
+                canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
+                drawBasicCircle(canvas, mCenterX, mCenterY, radius, calculateColor(
+                        Color.parseColor(PHOTO_MODE_COLOR), Color.parseColor(VIDEO_MODE_COLOR)));
+                if (mAnimFraction == 1.0f) {
+                    mMode = MODE_VIDEO_NORMAL;
+                    mParentView.invalidate();
+                }
+                break;
+            case MODE_VIDEO_TO_PHOTO:
+                radius = mMinRadius;
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(mDefaultRingWidth);
+                ringColor = calculateColor(Color.parseColor(RING_COLOR),
+                        alpha << 24 | (Color.parseColor(PHOTO_MODE_COLOR) & 0xffffff));
+                mPaint.setColor(ringColor);
+                ringRadius = (int) (mMiddleRadius - mDefaultRingWidth);
+                canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
+                drawBasicCircle(canvas, mCenterX, mCenterY, radius, calculateColor(
+                        Color.parseColor(VIDEO_MODE_COLOR), Color.parseColor(PHOTO_MODE_COLOR)));
+                if (mAnimFraction == 1.0f) {
+                    mMode = MODE_PHOTO_NORMAL;
+                    mParentView.invalidate();
+                }
                 break;
             case MODE_VIDEO_NORMAL:
                 radius = mMinRadius;
@@ -128,7 +187,7 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
                 mPaint.setColor(ringColor);
                 ringRadius = (int) (mMiddleRadius - mDefaultRingWidth);
                 canvas.drawCircle(mCenterX, mCenterY, ringRadius, mPaint);
-                drawBasicCircle(canvas, mCenterX, mCenterY, radius);
+                drawBasicCircle(canvas, mCenterX, mCenterY, radius, Color.parseColor(VIDEO_MODE_COLOR));
                 mAnimFraction = 0;
                 break;
             case MODE_VIDEO_TO_WORK:
@@ -230,6 +289,21 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         startAnimation();
     }
 
+    public void startTakePhoto() {
+        mMode = MODE_PHOTO_WORK;
+        mParentView.invalidate();
+    }
+
+    public void stopTakePhoto() {
+        mMode = MODE_PHOTO_NORMAL;
+        mParentView.invalidate();
+    }
+
+    public void setVisible(boolean isVisible) {
+        this.isVisible = isVisible;
+        mParentView.invalidate();
+    }
+
     private void startAnimation() {
         if (null != mValueAnimator && mValueAnimator.isRunning())
             mValueAnimator.cancel();
@@ -241,6 +315,11 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         mValueAnimator.start();
     }
 
+    private int calculateColor(int startColor, int endColor) {
+        ArgbEvaluator evaluator = new ArgbEvaluator();
+        return (int) evaluator.evaluate(mAnimFraction, startColor, endColor);
+    }
+
     private void drawSquare(Canvas canvas, int centerX, float tmpAngle, float tmpSquareC) {
         float lt = centerX - tmpSquareC;
         float rb = centerX + tmpSquareC;
@@ -248,10 +327,25 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
         canvas.drawRoundRect(rectF, tmpAngle, tmpAngle, mPaint);
     }
 
-    private void drawBasicCircle(Canvas canvas, int centerX, int centerY, float radius) {
+    private void drawBasicCircle(Canvas canvas, int centerX, int centerY, float radius,
+                                 int color) {
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.parseColor(VIDEO_MODE_COLOR));
+        mPaint.setColor(color);
         canvas.drawCircle(centerX, centerY, radius, mPaint);
+    }
+
+    public void changeToPhotoMode() {
+        if (mMode == MODE_VIDEO_TO_PHOTO || mMode == MODE_PHOTO_NORMAL)
+            return;
+        mMode = MODE_VIDEO_TO_PHOTO;
+        startAnimation();
+    }
+
+    public void changeToVideoMode() {
+        if (mMode == MODE_PHOTO_TO_VIDEO || mMode == MODE_VIDEO_NORMAL)
+            return;
+        mMode = MODE_PHOTO_TO_VIDEO;
+        startAnimation();
     }
 
     @Override
@@ -295,6 +389,10 @@ public class CameraShutter implements ValueAnimator.AnimatorUpdateListener,
                 } else if (mMode == MODE_VIDEO_WORK) {
                     if (mOnClickListener != null)
                         mOnClickListener.onRelease();
+                } else if (mMode == MODE_PHOTO_NORMAL) {
+                    startTakePhoto();
+                    if (mOnClickListener != null)
+                        mOnClickListener.onClicked();
                 }
                 break;
         }

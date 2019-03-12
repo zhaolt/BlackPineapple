@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import io.reactivex.Observable;
+
 public class CameraThread extends Thread {
 
     private static final String TAG = CameraThread.class.getSimpleName();
@@ -120,9 +122,10 @@ public class CameraThread extends Thread {
             setAF(mCamera);
             setCAF(mCamera);
             Camera.Parameters params = mCamera.getParameters();
-            Camera.Size previewSize = calculateMaxPreviewSize(params.getSupportedPreviewSizes(),
-                    ratio);
+            Camera.Size previewSize = calculateMaxSize(params.getSupportedPreviewSizes(), ratio);
             params.setPreviewSize(previewSize.width, previewSize.height);
+            Camera.Size pictureSize = calculateMaxSize(params.getSupportedPictureSizes(), ratio);
+            params.setPictureSize(pictureSize.width, pictureSize.height);
             // 适配nexus6系列拍摄预览倒置的问题
             if (Build.MODEL.equals("Nexus 6") && isFront()) {
                 mCamera.setDisplayOrientation(0);
@@ -177,6 +180,37 @@ public class CameraThread extends Thread {
                 mCamera.autoFocus(new Camera.AutoFocusCallback() {
                     @Override
                     public void onAutoFocus(boolean success, Camera camera) {
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    void takePicture(final TakePictureCallback callback, int rotate) {
+        synchronized (mReadyFence) {
+            if (null == mCamera) {
+                if (null != callback)
+                    callback.onError(-1);
+                return;
+            }
+            try {
+                Camera.Parameters params = mCamera.getParameters();
+                if (isFront())
+                    rotate = Math.abs(360 - rotate) % 360;
+                params.setRotation(rotate);
+                mCamera.setParameters(params);
+                mCamera.takePicture(null, null, new Camera.PictureCallback() {
+                    @Override
+                    public void onPictureTaken(byte[] data, Camera camera) {
+                        if (null != callback)
+                            callback.onTakePicture(Observable.just(data));
+                        try {
+                            camera.startPreview();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
             } catch (Exception e) {
@@ -315,7 +349,7 @@ public class CameraThread extends Thread {
         }
     }
 
-    private Camera.Size calculateMaxPreviewSize(List<Camera.Size> supportedSize, double ratio) {
+    private Camera.Size calculateMaxSize(List<Camera.Size> supportedSize, double ratio) {
         ArrayList<Camera.Size> targetRatioSize = new ArrayList<>();
         StringBuilder sizesString = new StringBuilder();
         for (Camera.Size size : supportedSize) {

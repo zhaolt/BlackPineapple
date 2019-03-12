@@ -69,6 +69,31 @@ public class CameraView extends FrameLayout {
             mCameraShutter.setOnClickListener(listener);
     }
 
+    public void startTakePhoto() {
+        if (null != mCameraShutter)
+            mCameraShutter.startTakePhoto();
+    }
+
+    public void stopTakePhoto() {
+        if (null != mCameraShutter)
+            mCameraShutter.stopTakePhoto();
+    }
+
+    public void changeToVideoMode() {
+        if (null != mCameraShutter)
+            mCameraShutter.changeToVideoMode();
+    }
+
+    public void changeToPhotoMode() {
+        if (null != mCameraShutter)
+            mCameraShutter.changeToPhotoMode();
+    }
+
+    public void setShutterVisiblity(boolean isVisible) {
+        if (null != mCameraShutter)
+            mCameraShutter.setVisible(isVisible);
+    }
+
     private void restoration(int width, int height) {
         int offsetX = width / 2 - mCameraShutter.getMiddleRadius();
         int offsetY = (int) (height - DensityUtils.dp2px(48) - mCameraShutter.getMiddleRadius() * 2);

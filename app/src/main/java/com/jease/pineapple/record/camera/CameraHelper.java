@@ -97,6 +97,18 @@ public class CameraHelper {
         }
     }
 
+    public void takePicture(TakePictureCallback callback, int rotate) {
+        if (null == mCamera) return;
+        CameraHandler handler = mCamera.getHandler();
+        if (null != handler) {
+            Message msg = handler.obtainMessage();
+            msg.what = MSG_TAKE_PICTURE;
+            msg.obj = callback;
+            msg.arg1 = rotate;
+            handler.sendMessage(msg);
+        }
+    }
+
     public void handleFocus(FocusParams params) {
         if (null == mCamera) return;
         CameraHandler handler = mCamera.getHandler();
@@ -174,6 +186,7 @@ public class CameraHelper {
                     camera.handleShrink((Boolean) msg.obj);
                     break;
                 case MSG_TAKE_PICTURE:
+                    camera.takePicture((TakePictureCallback) msg.obj, msg.arg1);
                     break;
                 case MSG_START_PREVIEW:
                     camera.startPreview();

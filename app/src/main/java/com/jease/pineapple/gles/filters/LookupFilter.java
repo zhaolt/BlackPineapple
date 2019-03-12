@@ -31,7 +31,7 @@ public class LookupFilter extends GLFilter {
 
     @Override
     protected void onCreate() {
-        createProgramByAssetsFile("shader/lookup_vertex.glsl",
+        createProgramByAssetsFile("shader/base_vertex.glsl",
                 "shader/lookup_fragment.glsl");
         mMaskTexLoc = GLES20.glGetUniformLocation(mProgram, "maskTexture");
         mLutTexId = MGLUtils.createTexture(mLutBitmap.getWidth(), mLutBitmap.getHeight());

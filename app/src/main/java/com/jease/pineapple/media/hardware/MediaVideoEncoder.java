@@ -47,12 +47,12 @@ public class MediaVideoEncoder extends MediaEncoder {
     /**
      * 帧率
      */
-    private static final int FRAME_RATE = 30;
+    private static final int FRAME_RATE = 24;
 
     /**
      * 码率计算因子
      */
-    private static final float BPP = 0.15f;
+    private static final float BPP = 0.25f;
 
     /**
      * 高清录制码率倍数
@@ -104,7 +104,9 @@ public class MediaVideoEncoder extends MediaEncoder {
             if (DEBUG) Log.i(TAG, "selected codec: " + videoCodecInfo.getName());
             final MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mWidth, mHeight);
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);	// API >= 18
-            setupHDParams(format);
+            // 测出vivo X9 可以设置profile为high但是输出视频帧紊乱
+            if (!Build.MODEL.equals("vivo X9"))
+                setupHDParams(format);
             if (mBitRate > 0) {
                 format.setInteger(MediaFormat.KEY_BIT_RATE, mBitRate);
             } else {
