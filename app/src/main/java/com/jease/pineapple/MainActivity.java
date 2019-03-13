@@ -11,7 +11,9 @@ import com.jease.pineapple.base.BaseActivity;
 public class MainActivity extends BaseActivity {
 
     public static Intent getCallingIntent(Context context) {
-        return new Intent(context, MainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        return intent;
     }
 
     @Override

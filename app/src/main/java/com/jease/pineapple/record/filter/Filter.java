@@ -66,4 +66,13 @@ public class Filter implements Parcelable {
         dest.writeString(mLutPath);
         dest.writeInt(mCoverResId);
     }
+
+    @Override
+    public String toString() {
+        return "Filter{" +
+                "mLutPath='" + mLutPath + '\'' +
+                ", mCoverResId=" + mCoverResId +
+                ", isSelected=" + isSelected +
+                '}';
+    }
 }

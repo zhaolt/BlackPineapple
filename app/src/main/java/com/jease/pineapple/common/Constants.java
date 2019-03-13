@@ -5,6 +5,7 @@ import com.jease.pineapple.R;
 public interface Constants {
 
     String BUNDLE_KEY_FILTERS = "filters";
+    String BUNDLE_KEY_FILTER = "filter";
 
     interface Video {
         int WIDTH = 1080;

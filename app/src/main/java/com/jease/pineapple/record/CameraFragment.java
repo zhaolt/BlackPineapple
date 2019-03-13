@@ -1,5 +1,7 @@
 package com.jease.pineapple.record;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -20,8 +22,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jease.pineapple.R;
+import com.jease.pineapple.base.OnFragmentCreatedListener;
 import com.jease.pineapple.common.Constants;
 import com.jease.pineapple.gles.GLController;
+import com.jease.pineapple.gles.filters.GLFilter;
+import com.jease.pineapple.gles.filters.GrayFilter;
 import com.jease.pineapple.gles.filters.LookupFilter;
 import com.jease.pineapple.record.camera.CameraHelper;
 import com.jease.pineapple.record.camera.TakePictureCallback;
@@ -34,8 +39,10 @@ import com.jease.pineapple.widget.ItemScrollView;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -71,6 +78,10 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
     private String[] mCameraMode;
 
     private FrameLayout mBottomFrame;
+
+    private List<Filter> mFilters;
+
+    private Filter mCurrentFilter;
 
     private int mCameraIndex = Camera.CameraInfo.CAMERA_FACING_BACK;
 
@@ -154,6 +165,7 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
+        initFilters();
         initView(view);
         return view;
     }
@@ -183,6 +195,19 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
                 return dismissPopMenu();
             }
         });
+    }
+
+    private void initFilters() {
+        mFilters = new ArrayList<>();
+        for (int i = 0; i < Constants.Filter.FILTER_ASSETS_PATH.length; i++) {
+            Filter f = new Filter();
+            f.setCoverResId(Constants.Filter.FILTER_RES_IDS[i]);
+            f.setLutPath(Constants.Filter.FILTER_ASSETS_PATH[i]);
+            if (f.getLutPath().equals(Constants.Filter.FILTER_ASSETS_PATH[0]))
+                f.setSelected(true);
+            mFilters.add(f);
+        }
+        mCurrentFilter = mFilters.get(0);
     }
 
     public boolean dismissPopMenu() {
@@ -245,17 +270,53 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
         mCameraView.startShutterVideoAnim();
         mCameraSwitchBtn.setVisibility(View.GONE);
         mCameraFlashBtn.setVisibility(View.GONE);
+        mCameraFilterBtn.setVisibility(View.GONE);
+        mCloseBtn.setVisibility(View.GONE);
     }
 
     private void onStopRecording() {
         mCameraView.stopShutterVideoAnim();
         mCameraSwitchBtn.setVisibility(View.VISIBLE);
         mCameraFlashBtn.setVisibility(View.VISIBLE);
+        mCameraFilterBtn.setVisibility(View.VISIBLE);
+        mCloseBtn.setVisibility(View.VISIBLE);
         VideoRecorder.getInstance().setRecordStatusCallback(null);
     }
 
+    public void updateFilter(Filter filter) {
+        if (mGLController != null) {
+            GLFilter f = null;
+            if (filter.getLutPath().equals(Constants.Filter.FILTER_ASSETS_PATH[6])) {
+                f = new GrayFilter(getResources());
+            } else {
+                Bitmap bitmap = null;
+                try {
+                    bitmap = BitmapFactory.decodeStream(getResources().getAssets().open(filter.getLutPath()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                f = new LookupFilter(getResources(), bitmap);
+            }
+            mGLController.replaceFilter(f);
+            mCurrentFilter = filter;
+        }
+    }
+
     private void onFilterSet(GLController controller) {
-        LookupFilter lutFilter = new LookupFilter(getResources());
+        if (mCurrentFilter == null) return;
+        if (mCurrentFilter.getLutPath().equals(Constants.Filter.FILTER_ASSETS_PATH[6])) {
+            GrayFilter grayFilter = new GrayFilter(getResources());
+            controller.addFilter(grayFilter);
+            return;
+        }
+        Bitmap bitmap = null;
+        try {
+            bitmap = BitmapFactory.decodeStream(
+                    getResources().getAssets().open(mCurrentFilter.getLutPath()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        LookupFilter lutFilter = new LookupFilter(getResources(), bitmap);
         controller.addFilter(lutFilter);
     }
 
@@ -263,15 +324,7 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_camera_switch:
-                SurfaceTexture surfaceTexture = mGLController.getSurfaceTexture();
-                if (surfaceTexture == null)
-                    return;
-                mCameraIndex = ++mCameraIndex % Camera.getNumberOfCameras();
-                CameraHelper.getInstance().switchCamera(
-                        getActivity().getWindowManager().getDefaultDisplay().getRotation(),
-                        mCameraIndex, 9.0 / 16.0);
-                CameraHelper.getInstance().setPreviewTexture(surfaceTexture);
-                CameraHelper.getInstance().startPreview();
+                switchCamera();
                 break;
             case R.id.tv_camera_flash:
                 break;
@@ -288,14 +341,19 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
         }
     }
 
+    private void switchCamera() {
+        SurfaceTexture surfaceTexture = mGLController.getSurfaceTexture();
+        if (surfaceTexture == null)
+            return;
+        mCameraIndex = ++mCameraIndex % Camera.getNumberOfCameras();
+        CameraHelper.getInstance().switchCamera(
+                getActivity().getWindowManager().getDefaultDisplay().getRotation(),
+                mCameraIndex, 9.0 / 16.0);
+        CameraHelper.getInstance().setPreviewTexture(surfaceTexture);
+        CameraHelper.getInstance().startPreview();
+    }
+
     private void showFilterMenu() {
-        ArrayList<Filter> filters = new ArrayList<>();
-        for (int i = 0; i < Constants.Filter.FILTER_ASSETS_PATH.length; i++) {
-            Filter f = new Filter();
-            f.setCoverResId(Constants.Filter.FILTER_RES_IDS[i]);
-            f.setLutPath(Constants.Filter.FILTER_ASSETS_PATH[i]);
-            filters.add(f);
-        }
         mBottomFrame.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -305,7 +363,14 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
         FragmentManager fm = getActivity().getSupportFragmentManager();
         Fragment fragment = fm.findFragmentById(R.id.bottom_frame);
         if (null == fragment)
-            fragment = FilterMenuFragment.newInstance(filters);
+            fragment = FilterMenuFragment.newInstance(mFilters);
+        final Fragment finalFragment = fragment;
+        ((FilterMenuFragment) fragment).setOnFragmentCreatedListener(new OnFragmentCreatedListener() {
+            @Override
+            public void onFragmentCreated() {
+                ((FilterMenuFragment) finalFragment).setCurrentFilter(mCurrentFilter);
+            }
+        });
         ((CameraActivity) getActivity()).addFragment(fm, fragment, R.id.bottom_frame);
         hideAllViews();
     }
@@ -347,13 +412,13 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
                 .prepare();
         VideoRecorder.getInstance().setRecordStatusCallback(mRecordStatusCallback);
         VideoRecorder.getInstance().startRecording();
-        Log.i(TAG, "shutter be pressed, start recording video.");
+        Log.i(TAG, "shutter be pressed, send start recording video signal.");
     }
 
     @Override
     public void onRelease() {
         VideoRecorder.getInstance().stopRecording();
-        Log.i(TAG, "shutter be released, stop recording video.");
+        Log.i(TAG, "shutter be released, send stop recording video signal.");
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.jease.pineapple.record.album;
 
 import android.Manifest;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
@@ -41,16 +40,9 @@ public class AlbumActivity extends FullScreenActivity implements SurfaceHolder.C
         @Override
         public void run() {
             releaseCamera();
-            PendingIntent intent = PendingIntent.getActivity(AlbumActivity.this,
-                    1,
-                    CameraActivity.getCallingIntent(AlbumActivity.this),
-                    PendingIntent.FLAG_CANCEL_CURRENT);
-            try {
-                intent.send();
-                overridePendingTransition(R.anim.slide_in_up, 0);
-            } catch (PendingIntent.CanceledException e) {
-                e.printStackTrace();
-            }
+            Intent intent = CameraActivity.getCallingIntent(AlbumActivity.this);
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_up, 0);
         }
     };
 
@@ -72,7 +64,6 @@ public class AlbumActivity extends FullScreenActivity implements SurfaceHolder.C
     public void surfaceCreated(SurfaceHolder holder) {
         initCamera(holder);
     }
-
 
 
     @Override

@@ -14,7 +14,12 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import com.jease.pineapple.R;
+import com.jease.pineapple.base.OnFragmentCreatedListener;
 import com.jease.pineapple.common.Constants;
+import com.jease.pineapple.record.CameraActivity;
+import com.jease.pineapple.utils.DensityUtils;
+import com.jease.pineapple.utils.DeviceInfoUtils;
+import com.jease.pineapple.widget.CenterLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +30,11 @@ public class FilterMenuFragment extends Fragment {
 
     private List<Filter> mFilters;
 
+    private CenterLayoutManager mLayoutManager;
+
     private FilterListAdapter mFilterListAdapter;
+
+    private OnFragmentCreatedListener mFragmentCreatedListener;
 
     public static FilterMenuFragment newInstance(List<Filter> filters) {
         FilterMenuFragment fragment = new FilterMenuFragment();
@@ -55,13 +64,41 @@ public class FilterMenuFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (null != mFragmentCreatedListener)
+            mFragmentCreatedListener.onFragmentCreated();
+    }
+
+    public void setOnFragmentCreatedListener(OnFragmentCreatedListener listener) {
+        mFragmentCreatedListener = listener;
+    }
+
+    public void setCurrentFilter(Filter filter) {
+        mFilterListAdapter.setCurrentFilter(filter);
+        int index;
+        if (null == filter)
+            index = 0;
+        else
+            index = mFilters.indexOf(filter);
+        mLayoutManager.scrollToPositionWithOffset(index,
+                (DeviceInfoUtils.getScreenWidth() >> 1) - ((int) DensityUtils.dp2px(35)));
+    }
+
     private void setupFilterList() {
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(),
+        mLayoutManager = new CenterLayoutManager(getActivity(),
                 LinearLayoutManager.HORIZONTAL, false);
-        mFilterList.setLayoutManager(layoutManager);
-        mFilterListAdapter = new FilterListAdapter();
+        mFilterList.setLayoutManager(mLayoutManager);
+        mFilterListAdapter = new FilterListAdapter(mFilterList);
         mFilterList.setAdapter(mFilterListAdapter);
         mFilterListAdapter.addAll(mFilters);
+        mFilterListAdapter.setOnItemClickListener(new FilterListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClicked(Filter f) {
+                ((CameraActivity) getActivity()).updateCameraFilter(f);
+            }
+        });
     }
 
 }

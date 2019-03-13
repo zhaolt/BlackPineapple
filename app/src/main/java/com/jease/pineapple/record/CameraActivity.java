@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import com.jease.pineapple.MainActivity;
 import com.jease.pineapple.R;
 import com.jease.pineapple.base.FullScreenActivity;
+import com.jease.pineapple.record.filter.Filter;
 
 public class CameraActivity extends FullScreenActivity {
 
@@ -41,10 +42,17 @@ public class CameraActivity extends FullScreenActivity {
         CameraFragment fragment = (CameraFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.frame_root);
         if (fragment != null && fragment.dismissPopMenu()) return;
+        // 回主页 清栈
+        Intent intent = MainActivity.getCallingIntent(getApplicationContext());
+        startActivity(intent);
         finish();
         overridePendingTransition(0, R.anim.slide_out_down);
-        // 回主页 清栈
-        Intent intent = MainActivity.getCallingIntent(this);
-        startActivity(intent);
+    }
+
+    public void updateCameraFilter(Filter filter) {
+        CameraFragment fragment = (CameraFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.frame_root);
+        if (fragment != null)
+            fragment.updateFilter(filter);
     }
 }

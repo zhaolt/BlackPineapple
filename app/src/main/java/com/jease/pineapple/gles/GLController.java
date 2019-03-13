@@ -102,6 +102,13 @@ public class GLController implements GLSurfaceView.Renderer {
             mGroupFilter.addFilter(filter);
     }
 
+    public void replaceFilter(GLFilter filter) {
+        if (null != mGroupFilter) {
+            mGroupFilter.clearAll();
+            mGroupFilter.addFilter(filter);
+        }
+    }
+
     public void surfaceCreated(Object nativeWindow) {
         mSurface = nativeWindow;
         mGLView.surfaceCreated(null);
