@@ -18,26 +18,26 @@ public interface Constants {
 
     interface Filter {
         int[] FILTER_RES_IDS = {
-                R.drawable.filter_normal,
-                R.drawable.filter_baby_1,
-                R.drawable.filter_baby_2,
-                R.drawable.filter_baby_3,
-                R.drawable.filter_baby_4,
-                R.drawable.filter_baby_5,
+                R.drawable.filter_0,
+                R.drawable.filter_i_1,
+                R.drawable.filter_i_2,
+                R.drawable.filter_i_3,
+                R.drawable.filter_i_4,
+                R.drawable.filter_i_5,
                 R.drawable.filter_gray,
-                R.drawable.filter_food_1,
-                R.drawable.filter_food_2,
-                R.drawable.filter_food_3,
-                R.drawable.filter_landscape_1,
-                R.drawable.filter_landscape_2,
-                R.drawable.filter_landscape_3,
-                R.drawable.filter_plant_1,
-                R.drawable.filter_plant_2,
-                R.drawable.filter_recomend_1,
-                R.drawable.filter_recomend_2,
-                R.drawable.filter_street_1,
-                R.drawable.filter_street_2,
-                R.drawable.filter_street_3
+                R.drawable.filter_j_1,
+                R.drawable.filter_j_2,
+                R.drawable.filter_j_3,
+                R.drawable.filter_k_1,
+                R.drawable.filter_k_2,
+                R.drawable.filter_k_3,
+                R.drawable.filter_l_1,
+                R.drawable.filter_l_2,
+                R.drawable.filter_m_1,
+                R.drawable.filter_m_2,
+                R.drawable.filter_n_1,
+                R.drawable.filter_n_2,
+                R.drawable.filter_n_3
         };
 
         String[] FILTER_ASSETS_PATH = {

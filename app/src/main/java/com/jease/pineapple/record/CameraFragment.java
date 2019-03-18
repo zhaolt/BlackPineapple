@@ -272,6 +272,7 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
         mCameraFlashBtn.setVisibility(View.GONE);
         mCameraFilterBtn.setVisibility(View.GONE);
         mCloseBtn.setVisibility(View.GONE);
+        mItemScrollView.setVisibility(View.GONE);
     }
 
     private void onStopRecording() {
@@ -280,6 +281,7 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback,
         mCameraFlashBtn.setVisibility(View.VISIBLE);
         mCameraFilterBtn.setVisibility(View.VISIBLE);
         mCloseBtn.setVisibility(View.VISIBLE);
+        mItemScrollView.setVisibility(View.VISIBLE);
         VideoRecorder.getInstance().setRecordStatusCallback(null);
     }
 
